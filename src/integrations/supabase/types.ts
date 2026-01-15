@@ -14,7 +14,145 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      likes: {
+        Row: {
+          created_at: string
+          id: string
+          short_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          short_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          short_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_short_id_fkey"
+            columns: ["short_id"]
+            isOneToOne: false
+            referencedRelation: "shorts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          interests: string[] | null
+          last_activity_date: string | null
+          streak: number
+          updated_at: string
+          username: string | null
+          xp: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          interests?: string[] | null
+          last_activity_date?: string | null
+          streak?: number
+          updated_at?: string
+          username?: string | null
+          xp?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          interests?: string[] | null
+          last_activity_date?: string | null
+          streak?: number
+          updated_at?: string
+          username?: string | null
+          xp?: number
+        }
+        Relationships: []
+      }
+      short_views: {
+        Row: {
+          created_at: string
+          id: string
+          short_id: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          short_id: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          short_id?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "short_views_short_id_fkey"
+            columns: ["short_id"]
+            isOneToOne: false
+            referencedRelation: "shorts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shorts: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_approved: boolean
+          likes_count: number
+          thumbnail_url: string | null
+          title: string
+          user_id: string
+          video_url: string
+          views_count: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_approved?: boolean
+          likes_count?: number
+          thumbnail_url?: string | null
+          title: string
+          user_id: string
+          video_url: string
+          views_count?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_approved?: boolean
+          likes_count?: number
+          thumbnail_url?: string | null
+          title?: string
+          user_id?: string
+          video_url?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
