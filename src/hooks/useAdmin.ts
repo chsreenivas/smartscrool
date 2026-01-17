@@ -54,11 +54,11 @@ export const useAdmin = () => {
     }
 
     try {
-      const { data: adminCheck } = await supabase
-        .rpc('has_role' as any, { _user_id: user.id, _role: 'admin' });
+      const { data: adminCheck } = await (supabase
+        .rpc('has_role', { _user_id: user.id, _role: 'admin' }) as any);
       
-      const { data: modCheck } = await supabase
-        .rpc('has_role' as any, { _user_id: user.id, _role: 'moderator' });
+      const { data: modCheck } = await (supabase
+        .rpc('has_role', { _user_id: user.id, _role: 'moderator' }) as any);
 
       setIsAdmin(adminCheck || false);
       setIsModerator(modCheck || false);
@@ -111,17 +111,17 @@ export const useAdmin = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('video_analytics')
+      const { data, error } = await (supabase
+        .from('video_analytics' as any)
         .select('*')
         .order('views_count', { ascending: false })
-        .limit(50);
+        .limit(50) as any);
 
       if (error) throw error;
 
       // Enrich with short info
       const enriched: VideoAnalytics[] = await Promise.all(
-        (data || []).map(async (item) => {
+        ((data as any[]) || []).map(async (item: any) => {
           const { data: short } = await supabase
             .from('shorts')
             .select('title, category')
@@ -129,9 +129,15 @@ export const useAdmin = () => {
             .single();
 
           return {
-            ...item,
+            id: item.id,
+            short_id: item.short_id,
+            views_count: item.views_count || 0,
+            likes_count: item.likes_count || 0,
+            completion_rate: item.completion_rate || 0,
+            avg_watch_time_seconds: item.avg_watch_time_seconds || 0,
+            updated_at: item.updated_at,
             short: short || undefined
-          };
+          } as VideoAnalytics;
         })
       );
 

@@ -41,10 +41,10 @@ export const useFriendships = () => {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from('friendships' as any)
         .select('*')
-        .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+        .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`) as any);
 
       if (error) throw error;
 
@@ -64,7 +64,12 @@ export const useFriendships = () => {
           .single();
 
         const enrichedFriendship: Friendship = {
-          ...friendship,
+          id: friendship.id,
+          requester_id: friendship.requester_id,
+          addressee_id: friendship.addressee_id,
+          status: friendship.status as FriendshipStatus,
+          created_at: friendship.created_at,
+          updated_at: friendship.updated_at,
           friend_profile: profile || undefined
         };
 
@@ -93,8 +98,8 @@ export const useFriendships = () => {
     if (!user || query.length < 2) return [];
 
     try {
-      const { data, error } = await supabase
-        .rpc('search_users_by_username' as any, { search_query: query });
+      const { data, error } = await (supabase
+        .rpc('search_users_by_username', { search_query: query }) as any);
 
       if (error) throw error;
 
@@ -112,13 +117,13 @@ export const useFriendships = () => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase
         .from('friendships' as any)
         .insert({
           requester_id: user.id,
           addressee_id: addresseeId,
           status: 'pending'
-        });
+        }) as any);
 
       if (error) throw error;
       await fetchFriendships();
@@ -132,14 +137,14 @@ export const useFriendships = () => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase
         .from('friendships' as any)
         .update({ 
           status: accept ? 'accepted' : 'rejected',
           updated_at: new Date().toISOString()
         })
         .eq('id', friendshipId)
-        .eq('addressee_id', user.id);
+        .eq('addressee_id', user.id) as any);
 
       if (error) throw error;
       await fetchFriendships();
@@ -153,10 +158,10 @@ export const useFriendships = () => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase
         .from('friendships' as any)
         .delete()
-        .eq('id', friendshipId);
+        .eq('id', friendshipId) as any);
 
       if (error) throw error;
       await fetchFriendships();
@@ -169,8 +174,8 @@ export const useFriendships = () => {
   const areFriends = async (otherUserId: string): Promise<boolean> => {
     if (!user) return false;
     try {
-      const { data } = await supabase
-        .rpc('are_friends' as any, { user_id_1: user.id, user_id_2: otherUserId });
+      const { data } = await (supabase
+        .rpc('are_friends', { user_id_1: user.id, user_id_2: otherUserId }) as any);
       return data || false;
     } catch {
       return false;

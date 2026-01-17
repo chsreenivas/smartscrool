@@ -36,42 +36,42 @@ export const useReposts = () => {
 
     try {
       // Get reposts sent to user directly (as friend)
-      const { data: friendReposts, error: friendError } = await supabase
-        .from('reposts')
+      const { data: friendReposts, error: friendError } = await (supabase
+        .from('reposts' as any)
         .select('*')
         .eq('target_type', 'friend')
         .eq('target_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any);
 
       if (friendError) throw friendError;
 
       // Get user's group IDs
-      const { data: memberships } = await supabase
-        .from('group_members')
+      const { data: memberships } = await (supabase
+        .from('group_members' as any)
         .select('group_id')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) as any);
 
-      const groupIds = memberships?.map(m => m.group_id) || [];
+      const groupIds = ((memberships as any[]) || []).map((m: any) => m.group_id) || [];
 
       // Get reposts to user's groups
       let groupReposts: any[] = [];
       if (groupIds.length > 0) {
-        const { data, error } = await supabase
-          .from('reposts')
+        const { data, error } = await (supabase
+          .from('reposts' as any)
           .select('*')
           .eq('target_type', 'group')
           .in('target_id', groupIds)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false }) as any);
 
         if (error) throw error;
-        groupReposts = data || [];
+        groupReposts = (data as any[]) || [];
       }
 
       // Combine and enrich
-      const allReposts = [...(friendReposts || []), ...groupReposts];
+      const allReposts = [...((friendReposts as any[]) || []), ...groupReposts];
       
       const enrichedReposts: Repost[] = await Promise.all(
-        allReposts.map(async (repost) => {
+        allReposts.map(async (repost: any) => {
           // Get short details
           const { data: short } = await supabase
             .from('shorts')
@@ -87,11 +87,16 @@ export const useReposts = () => {
             .single();
 
           return {
-            ...repost,
+            id: repost.id,
+            user_id: repost.user_id,
+            short_id: repost.short_id,
             target_type: repost.target_type as 'friend' | 'group',
+            target_id: repost.target_id,
+            message: repost.message,
+            created_at: repost.created_at,
             short: short || undefined,
             sender: sender || undefined
-          };
+          } as Repost;
         })
       );
 
@@ -107,15 +112,15 @@ export const useReposts = () => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
-      const { error } = await supabase
-        .from('reposts')
+      const { error } = await (supabase
+        .from('reposts' as any)
         .insert({
           user_id: user.id,
           short_id: shortId,
           target_type: 'friend',
           target_id: friendId,
           message
-        });
+        }) as any);
 
       if (error) throw error;
       return { error: null };
@@ -129,15 +134,15 @@ export const useReposts = () => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
-      const { error } = await supabase
-        .from('reposts')
+      const { error } = await (supabase
+        .from('reposts' as any)
         .insert({
           user_id: user.id,
           short_id: shortId,
           target_type: 'group',
           target_id: groupId,
           message
-        });
+        }) as any);
 
       if (error) throw error;
       return { error: null };
