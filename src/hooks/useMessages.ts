@@ -38,17 +38,17 @@ export const useMessages = (friendId?: string) => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('messages')
+      const { data, error } = await (supabase
+        .from('messages' as any)
         .select('*')
         .or(`and(sender_id.eq.${user.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${user.id})`)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true }) as any);
 
       if (error) throw error;
 
       // Enrich with sender profiles
       const enrichedMessages: Message[] = await Promise.all(
-        (data || []).map(async (msg) => {
+        ((data as any[]) || []).map(async (msg: any) => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('username, avatar_url')
@@ -56,21 +56,26 @@ export const useMessages = (friendId?: string) => {
             .single();
 
           return {
-            ...msg,
+            id: msg.id,
+            sender_id: msg.sender_id,
+            receiver_id: msg.receiver_id,
+            content: msg.content,
+            read_at: msg.read_at,
+            created_at: msg.created_at,
             sender_profile: profile || undefined
-          };
+          } as Message;
         })
       );
 
       setMessages(enrichedMessages);
 
       // Mark messages as read
-      await supabase
-        .from('messages')
+      await (supabase
+        .from('messages' as any)
         .update({ read_at: new Date().toISOString() })
         .eq('sender_id', friendId)
         .eq('receiver_id', user.id)
-        .is('read_at', null);
+        .is('read_at', null) as any);
 
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -88,21 +93,21 @@ export const useMessages = (friendId?: string) => {
 
     try {
       // Get all messages involving the user
-      const { data: allMessages, error } = await supabase
-        .from('messages')
+      const { data: allMessages, error } = await (supabase
+        .from('messages' as any)
         .select('*')
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any);
 
       if (error) throw error;
 
       // Group by conversation partner
       const conversationMap = new Map<string, {
-        messages: typeof allMessages;
-        lastMessage: typeof allMessages[0];
+        messages: any[];
+        lastMessage: any;
       }>();
 
-      for (const msg of allMessages || []) {
+      for (const msg of (allMessages as any[]) || []) {
         const partnerId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
         
         if (!conversationMap.has(partnerId)) {
@@ -125,7 +130,7 @@ export const useMessages = (friendId?: string) => {
             .single();
 
           const unreadCount = data.messages.filter(
-            m => m.receiver_id === user.id && !m.read_at
+            (m: any) => m.receiver_id === user.id && !m.read_at
           ).length;
 
           return {
@@ -153,13 +158,13 @@ export const useMessages = (friendId?: string) => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
-      const { error } = await supabase
-        .from('messages')
+      const { error } = await (supabase
+        .from('messages' as any)
         .insert({
           sender_id: user.id,
           receiver_id: receiverId,
           content
-        });
+        }) as any);
 
       if (error) throw error;
       

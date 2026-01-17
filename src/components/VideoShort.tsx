@@ -1,9 +1,13 @@
 import { useRef, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Heart, MessageCircle, Share2, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Heart, Share2, Play, Pause, Volume2, VolumeX, HelpCircle, MessageSquare, Send } from 'lucide-react';
 import { Short } from '@/hooks/useShorts';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuizzes, Quiz } from '@/hooks/useQuizzes';
 import { toast } from 'sonner';
+import { QuizOverlay } from './QuizOverlay';
+import { SharePanel } from './SharePanel';
+import { AITutorChat } from './AITutorChat';
 
 interface VideoShortProps {
   short: Short;
@@ -18,8 +22,26 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [showXP, setShowXP] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [showTutor, setShowTutor] = useState(false);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [hasAttemptedQuiz, setHasAttemptedQuiz] = useState(false);
   const { user } = useAuth();
+  const { getQuizForShort, hasAttemptedQuiz: checkAttempted } = useQuizzes();
   const hasRecordedView = useRef(false);
+
+  useEffect(() => {
+    const loadQuiz = async () => {
+      const quizData = await getQuizForShort(short.id);
+      setQuiz(quizData);
+      if (quizData && user) {
+        const attempted = await checkAttempted(quizData.id);
+        setHasAttemptedQuiz(attempted);
+      }
+    };
+    loadQuiz();
+  }, [short.id, user]);
 
   useEffect(() => {
     if (isActive && videoRef.current) {
@@ -70,16 +92,52 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
     onLike();
   };
 
-  const handleShare = async () => {
-    try {
-      await navigator.share({
+  const handleShare = () => {
+    if (!user) {
+      // Fallback to native share for non-authenticated users
+      navigator.share?.({
         title: short.title,
         text: short.description || '',
         url: window.location.href,
+      }).catch(() => {
+        navigator.clipboard.writeText(window.location.href);
+        toast.success('Link copied to clipboard!');
       });
-    } catch {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied to clipboard!');
+      return;
+    }
+    setShowShare(true);
+  };
+
+  const handleQuizClick = () => {
+    if (!user) {
+      toast.error('Please sign in to take quizzes');
+      return;
+    }
+    if (!quiz) {
+      toast.info('No quiz available for this video yet');
+      return;
+    }
+    if (hasAttemptedQuiz) {
+      toast.info('You already completed this quiz!');
+      return;
+    }
+    setShowQuiz(true);
+  };
+
+  const handleTutorClick = () => {
+    if (!user) {
+      toast.error('Please sign in to use AI tutor');
+      return;
+    }
+    setShowTutor(true);
+  };
+
+  const handleQuizComplete = (isCorrect: boolean, earnedXP: number) => {
+    setHasAttemptedQuiz(true);
+    if (isCorrect) {
+      toast.success(`Correct! +${earnedXP} XP`);
+    } else {
+      toast.error('Incorrect. Keep learning!');
     }
   };
 
@@ -112,18 +170,21 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
       )}
 
       {/* XP Animation */}
-      {showXP && (
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          initial={{ opacity: 0, scale: 0.5, y: 0 }}
-          animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 1.2, 1, 1], y: [0, -50] }}
-          transition={{ duration: 2 }}
-        >
-          <div className="text-4xl font-bold text-yellow-400 drop-shadow-lg">
-            +{xpEarned} XP
-          </div>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {showXP && (
+          <motion.div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            initial={{ opacity: 0, scale: 0.5, y: 0 }}
+            animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 1.2, 1, 1], y: [0, -50] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2 }}
+          >
+            <div className="text-4xl font-bold text-yellow-400 drop-shadow-lg">
+              +{xpEarned} XP
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Bottom Gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
@@ -142,11 +203,16 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
           <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-medium backdrop-blur-sm">
             {short.category}
           </span>
+          {quiz && !hasAttemptedQuiz && (
+            <span className="px-3 py-1 rounded-full bg-primary/80 text-primary-foreground text-xs font-medium backdrop-blur-sm animate-pulse">
+              Quiz Available!
+            </span>
+          )}
         </div>
       </div>
 
       {/* Right Side Actions */}
-      <div className="absolute right-4 bottom-32 flex flex-col items-center gap-6">
+      <div className="absolute right-4 bottom-32 flex flex-col items-center gap-5">
         {/* Like */}
         <motion.button
           onClick={handleLike}
@@ -161,16 +227,48 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
           <span className="text-white text-xs mt-1 font-medium">{short.likes_count}</span>
         </motion.button>
 
-        {/* Share */}
+        {/* Quiz */}
+        <motion.button
+          onClick={handleQuizClick}
+          whileTap={{ scale: 0.9 }}
+          className="flex flex-col items-center"
+        >
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+            quiz && !hasAttemptedQuiz 
+              ? 'bg-primary/80 backdrop-blur-sm' 
+              : hasAttemptedQuiz 
+                ? 'bg-green-500/80 backdrop-blur-sm' 
+                : 'bg-white/20 backdrop-blur-sm'
+          }`}>
+            <HelpCircle className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-white text-xs mt-1 font-medium">
+            {hasAttemptedQuiz ? 'Done' : 'Quiz'}
+          </span>
+        </motion.button>
+
+        {/* AI Tutor */}
+        <motion.button
+          onClick={handleTutorClick}
+          whileTap={{ scale: 0.9 }}
+          className="flex flex-col items-center"
+        >
+          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <MessageSquare className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-white text-xs mt-1 font-medium">Tutor</span>
+        </motion.button>
+
+        {/* Share (Private) */}
         <motion.button
           onClick={handleShare}
           whileTap={{ scale: 0.9 }}
           className="flex flex-col items-center"
         >
           <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <Share2 className="w-6 h-6 text-white" />
+            <Send className="w-6 h-6 text-white" />
           </div>
-          <span className="text-white text-xs mt-1 font-medium">Share</span>
+          <span className="text-white text-xs mt-1 font-medium">Send</span>
         </motion.button>
 
         {/* Mute/Unmute */}
@@ -198,6 +296,33 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
       >
         <span className="text-white/60 text-sm">Swipe up for more</span>
       </motion.div>
+
+      {/* Quiz Overlay */}
+      {quiz && (
+        <QuizOverlay
+          isOpen={showQuiz}
+          onClose={() => setShowQuiz(false)}
+          quiz={quiz}
+          onComplete={handleQuizComplete}
+        />
+      )}
+
+      {/* Share Panel */}
+      <SharePanel
+        isOpen={showShare}
+        onClose={() => setShowShare(false)}
+        shortId={short.id}
+        shortTitle={short.title}
+      />
+
+      {/* AI Tutor Chat */}
+      <AITutorChat
+        isOpen={showTutor}
+        onClose={() => setShowTutor(false)}
+        shortTitle={short.title}
+        shortDescription={short.description}
+        category={short.category}
+      />
     </div>
   );
 };

@@ -55,34 +55,35 @@ export const useGroups = () => {
     }
 
     try {
-      const { data: memberships, error: memberError } = await supabase
+      // Get user's group memberships
+      const { data: memberships, error: memberError } = await (supabase
         .from('group_members' as any)
         .select('group_id, role')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) as any);
 
       if (memberError) throw memberError;
 
-      const groupIds = (memberships as any[])?.map(m => m.group_id) || [];
+      const groupIds = (memberships as any[])?.map((m: any) => m.group_id) || [];
       
       if (groupIds.length > 0) {
-        const { data: groupsData } = await supabase
+        const { data: groupsData } = await (supabase
           .from('groups' as any)
           .select('*')
-          .in('id', groupIds);
+          .in('id', groupIds) as any);
 
         const enrichedGroups: Group[] = await Promise.all(
-          ((groupsData as any[]) || []).map(async (group) => {
-            const { count } = await supabase
+          ((groupsData as any[]) || []).map(async (group: any) => {
+            const { count } = await (supabase
               .from('group_members' as any)
               .select('*', { count: 'exact', head: true })
-              .eq('group_id', group.id);
+              .eq('group_id', group.id) as any);
 
-            const membership = (memberships as any[])?.find(m => m.group_id === group.id);
+            const membership = (memberships as any[])?.find((m: any) => m.group_id === group.id);
             return {
               ...group,
               member_count: count || 0,
               my_role: membership?.role as GroupRole
-            };
+            } as Group;
           })
         );
         setGroups(enrichedGroups);
@@ -90,31 +91,23 @@ export const useGroups = () => {
         setGroups([]);
       }
 
-      const { data: invitesData } = await supabase
+      // Fetch pending invites
+      const { data: invitesData, error: invitesError } = await (supabase
         .from('group_invites' as any)
         .select('*')
         .eq('invitee_id', user.id)
-        .eq('status', 'pending');
-
-      setInvites((invitesData as GroupInvite[]) || []);
-
-      // Fetch pending invites
-      const { data: invitesData, error: invitesError } = await supabase
-        .from('group_invites')
-        .select('*')
-        .eq('invitee_id', user.id)
-        .eq('status', 'pending');
+        .eq('status', 'pending') as any);
 
       if (invitesError) throw invitesError;
 
       // Enrich invites with group and inviter info
       const enrichedInvites: GroupInvite[] = await Promise.all(
-        (invitesData || []).map(async (invite) => {
-          const { data: group } = await supabase
-            .from('groups')
+        ((invitesData as any[]) || []).map(async (invite: any) => {
+          const { data: group } = await (supabase
+            .from('groups' as any)
             .select('*')
             .eq('id', invite.group_id)
-            .single();
+            .single() as any);
 
           const { data: inviter } = await supabase
             .from('profiles')
@@ -127,7 +120,7 @@ export const useGroups = () => {
             status: invite.status as 'pending' | 'accepted' | 'rejected',
             group: group || undefined,
             inviter: inviter || undefined
-          };
+          } as GroupInvite;
         })
       );
 
@@ -143,31 +136,31 @@ export const useGroups = () => {
     if (!user) return { error: 'Not authenticated', data: null };
 
     try {
-      const { data: group, error: groupError } = await supabase
-        .from('groups')
+      const { data: group, error: groupError } = await (supabase
+        .from('groups' as any)
         .insert({
           name,
           description,
           created_by: user.id
         })
         .select()
-        .single();
+        .single() as any);
 
       if (groupError) throw groupError;
 
       // Add creator as admin
-      const { error: memberError } = await supabase
-        .from('group_members')
+      const { error: memberError } = await (supabase
+        .from('group_members' as any)
         .insert({
-          group_id: group.id,
+          group_id: (group as any).id,
           user_id: user.id,
           role: 'admin'
-        });
+        }) as any);
 
       if (memberError) throw memberError;
 
       await fetchGroups();
-      return { error: null, data: group };
+      return { error: null, data: group as Group };
     } catch (error: any) {
       console.error('Error creating group:', error);
       return { error: error.message, data: null };
@@ -178,14 +171,14 @@ export const useGroups = () => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
-      const { error } = await supabase
-        .from('group_invites')
+      const { error } = await (supabase
+        .from('group_invites' as any)
         .insert({
           group_id: groupId,
           inviter_id: user.id,
           invitee_id: inviteeId,
           status: 'pending'
-        });
+        }) as any);
 
       if (error) throw error;
       return { error: null };
@@ -203,22 +196,22 @@ export const useGroups = () => {
       if (!invite) throw new Error('Invite not found');
 
       // Update invite status
-      const { error: updateError } = await supabase
-        .from('group_invites')
+      const { error: updateError } = await (supabase
+        .from('group_invites' as any)
         .update({ status: accept ? 'accepted' : 'rejected' })
-        .eq('id', inviteId);
+        .eq('id', inviteId) as any);
 
       if (updateError) throw updateError;
 
       // If accepted, add user to group
       if (accept) {
-        const { error: memberError } = await supabase
-          .from('group_members')
+        const { error: memberError } = await (supabase
+          .from('group_members' as any)
           .insert({
             group_id: invite.group_id,
             user_id: user.id,
             role: 'member'
-          });
+          }) as any);
 
         if (memberError) throw memberError;
       }
@@ -235,11 +228,11 @@ export const useGroups = () => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
-      const { error } = await supabase
-        .from('group_members')
+      const { error } = await (supabase
+        .from('group_members' as any)
         .delete()
         .eq('group_id', groupId)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) as any);
 
       if (error) throw error;
       await fetchGroups();
@@ -252,16 +245,16 @@ export const useGroups = () => {
 
   const getGroupMembers = async (groupId: string): Promise<GroupMember[]> => {
     try {
-      const { data, error } = await supabase
-        .from('group_members')
+      const { data, error } = await (supabase
+        .from('group_members' as any)
         .select('*')
-        .eq('group_id', groupId);
+        .eq('group_id', groupId) as any);
 
       if (error) throw error;
 
       // Enrich with profile data
       const enrichedMembers: GroupMember[] = await Promise.all(
-        (data || []).map(async (member) => {
+        ((data as any[]) || []).map(async (member: any) => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('username, avatar_url')
@@ -269,10 +262,13 @@ export const useGroups = () => {
             .single();
 
           return {
-            ...member,
+            id: member.id,
+            group_id: member.group_id,
+            user_id: member.user_id,
             role: member.role as GroupRole,
+            joined_at: member.joined_at || member.created_at,
             profile: profile || undefined
-          };
+          } as GroupMember;
         })
       );
 

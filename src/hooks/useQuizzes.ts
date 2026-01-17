@@ -31,21 +31,29 @@ export const useQuizzes = () => {
 
   const getQuizForShort = async (shortId: string): Promise<Quiz | null> => {
     try {
-      const { data, error } = await supabase
-        .from('quizzes')
+      const { data, error } = await (supabase
+        .from('quizzes' as any)
         .select('*')
         .eq('short_id', shortId)
-        .single();
+        .single() as any);
 
       if (error) {
         if (error.code === 'PGRST116') return null; // No quiz found
         throw error;
       }
 
+      if (!data) return null;
+
       return {
-        ...data,
-        options: data.options as string[]
-      };
+        id: data.id,
+        short_id: data.short_id,
+        question: data.question,
+        options: data.options as string[],
+        correct_answer: data.correct_answer,
+        explanation: data.explanation,
+        xp_reward: data.xp_reward,
+        created_at: data.created_at
+      } as Quiz;
     } catch (error) {
       console.error('Error fetching quiz:', error);
       return null;
@@ -56,12 +64,12 @@ export const useQuizzes = () => {
     if (!user) return false;
 
     try {
-      const { data, error } = await supabase
-        .from('quiz_attempts')
+      const { data, error } = await (supabase
+        .from('quiz_attempts' as any)
         .select('id')
         .eq('quiz_id', quizId)
         .eq('user_id', user.id)
-        .maybeSingle();
+        .maybeSingle() as any);
 
       if (error) throw error;
       return !!data;
@@ -85,15 +93,15 @@ export const useQuizzes = () => {
       const xpEarned = isCorrect ? quiz.xp_reward : 0;
 
       // Record the attempt
-      const { error } = await supabase
-        .from('quiz_attempts')
+      const { error } = await (supabase
+        .from('quiz_attempts' as any)
         .insert({
           user_id: user.id,
           quiz_id: quiz.id,
           selected_answer: selectedAnswer,
           is_correct: isCorrect,
           xp_earned: xpEarned
-        });
+        }) as any);
 
       if (error) throw error;
 
@@ -115,16 +123,17 @@ export const useQuizzes = () => {
     if (!user) return { total: 0, correct: 0, xpEarned: 0 };
 
     try {
-      const { data, error } = await supabase
-        .from('quiz_attempts')
+      const { data, error } = await (supabase
+        .from('quiz_attempts' as any)
         .select('is_correct, xp_earned')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) as any);
 
       if (error) throw error;
 
-      const total = data?.length || 0;
-      const correct = data?.filter(a => a.is_correct).length || 0;
-      const xpEarned = data?.reduce((sum, a) => sum + (a.xp_earned || 0), 0) || 0;
+      const attempts = (data as any[]) || [];
+      const total = attempts.length;
+      const correct = attempts.filter((a: any) => a.is_correct).length;
+      const xpEarned = attempts.reduce((sum: number, a: any) => sum + (a.xp_earned || 0), 0);
 
       return { total, correct, xpEarned };
     } catch (error) {
