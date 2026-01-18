@@ -5,37 +5,30 @@ import { Button } from '@/components/ui/button';
 import { Quiz, useQuizzes } from '@/hooks/useQuizzes';
 
 interface QuizOverlayProps {
-  shortId: string;
   isOpen: boolean;
   onClose: () => void;
+  quiz: Quiz;
+  onComplete?: (isCorrect: boolean, earnedXP: number) => void;
 }
 
-export const QuizOverlay = ({ shortId, isOpen, onClose }: QuizOverlayProps) => {
-  const { getQuizForShort, hasAttemptedQuiz, submitAnswer, loading } = useQuizzes();
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
+export const QuizOverlay = ({ isOpen, onClose, quiz, onComplete }: QuizOverlayProps) => {
+  const { hasAttemptedQuiz, submitAnswer, loading } = useQuizzes();
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [result, setResult] = useState<{ isCorrect: boolean; xpEarned: number } | null>(null);
   const [alreadyAttempted, setAlreadyAttempted] = useState(false);
   const [loadingQuiz, setLoadingQuiz] = useState(true);
 
   useEffect(() => {
-    const loadQuiz = async () => {
-      if (!isOpen) return;
+    const checkAttempt = async () => {
+      if (!isOpen || !quiz) return;
       setLoadingQuiz(true);
-      
-      const quizData = await getQuizForShort(shortId);
-      setQuiz(quizData);
-      
-      if (quizData) {
-        const attempted = await hasAttemptedQuiz(quizData.id);
-        setAlreadyAttempted(attempted);
-      }
-      
+      const attempted = await hasAttemptedQuiz(quiz.id);
+      setAlreadyAttempted(attempted);
       setLoadingQuiz(false);
     };
 
-    loadQuiz();
-  }, [shortId, isOpen, getQuizForShort, hasAttemptedQuiz]);
+    checkAttempt();
+  }, [quiz, isOpen, hasAttemptedQuiz]);
 
   const handleSubmit = async () => {
     if (!quiz || selectedAnswer === null) return;
@@ -43,6 +36,7 @@ export const QuizOverlay = ({ shortId, isOpen, onClose }: QuizOverlayProps) => {
     const response = await submitAnswer(quiz, selectedAnswer);
     if (!response.error) {
       setResult({ isCorrect: response.isCorrect, xpEarned: response.xpEarned });
+      onComplete?.(response.isCorrect, response.xpEarned);
     }
   };
 
@@ -78,14 +72,6 @@ export const QuizOverlay = ({ shortId, isOpen, onClose }: QuizOverlayProps) => {
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
                 <p className="mt-4 text-muted-foreground">Loading quiz...</p>
-              </div>
-            ) : !quiz ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Brain className="w-16 h-16 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Quiz Available</h3>
-                <p className="text-muted-foreground text-center">
-                  There's no quiz for this video yet.
-                </p>
               </div>
             ) : alreadyAttempted && !result ? (
               <div className="flex flex-col items-center justify-center py-12">
