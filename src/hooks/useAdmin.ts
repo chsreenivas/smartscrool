@@ -54,11 +54,11 @@ export const useAdmin = () => {
     }
 
     try {
-      const { data: adminCheck } = await (supabase
-        .rpc('has_role', { _user_id: user.id, _role: 'admin' }) as any);
+      const { data: adminCheck } = await (supabase as any)
+        .rpc('has_role', { _user_id: user.id, _role: 'admin' });
       
-      const { data: modCheck } = await (supabase
-        .rpc('has_role', { _user_id: user.id, _role: 'moderator' }) as any);
+      const { data: modCheck } = await (supabase as any)
+        .rpc('has_role', { _user_id: user.id, _role: 'moderator' });
 
       setIsAdmin(adminCheck || false);
       setIsModerator(modCheck || false);

@@ -98,8 +98,8 @@ export const useFriendships = () => {
     if (!user || query.length < 2) return [];
 
     try {
-      const { data, error } = await (supabase
-        .rpc('search_users_by_username', { search_query: query }) as any);
+      const { data, error } = await (supabase as any)
+        .rpc('search_users_by_username', { search_query: query });
 
       if (error) throw error;
 
@@ -174,8 +174,8 @@ export const useFriendships = () => {
   const areFriends = async (otherUserId: string): Promise<boolean> => {
     if (!user) return false;
     try {
-      const { data } = await (supabase
-        .rpc('are_friends', { user_id_1: user.id, user_id_2: otherUserId }) as any);
+      const { data } = await (supabase as any)
+        .rpc('are_friends', { user_id_1: user.id, user_id_2: otherUserId });
       return data || false;
     } catch {
       return false;
