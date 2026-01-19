@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload as UploadIcon, Video, X, Check } from 'lucide-react';
+import { ArrowLeft, Upload as UploadIcon, Video, X, Loader2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +21,7 @@ const Upload = () => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'moderating' | 'done'>('idle');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,6 +53,7 @@ const Upload = () => {
     }
 
     setIsUploading(true);
+    setUploadStatus('uploading');
 
     try {
       // Upload video to storage
@@ -67,8 +69,8 @@ const Upload = () => {
         .from('videos')
         .getPublicUrl(fileName);
 
-      // Create short record
-      const { error: insertError } = await supabase
+      // Create short record with pending moderation status
+      const { data: shortData, error: insertError } = await supabase
         .from('shorts')
         .insert({
           user_id: user.id,
@@ -76,16 +78,41 @@ const Upload = () => {
           description,
           video_url: publicUrl,
           category,
-          is_approved: true, // For now, auto-approve. In production, set to false for moderation
-        });
+          is_approved: false, // Pending AI moderation
+          moderation_status: 'pending',
+        })
+        .select('id')
+        .single();
 
       if (insertError) throw insertError;
 
-      toast.success('Video uploaded successfully!');
+      // Trigger AI moderation
+      setUploadStatus('moderating');
+      
+      const { data: moderationResult, error: moderationError } = await supabase.functions.invoke('moderate-video', {
+        body: {
+          short_id: shortData.id,
+          title,
+          description,
+          // transcript would come from a transcription service in production
+        }
+      });
+
+      if (moderationError) {
+        console.error('Moderation error:', moderationError);
+        toast.warning('Video uploaded! It will be reviewed by our team.');
+      } else if (moderationResult?.is_approved) {
+        toast.success('Video approved and published!');
+      } else {
+        toast.info('Video uploaded! It\'s being reviewed for educational content.');
+      }
+
+      setUploadStatus('done');
       navigate('/feed');
     } catch (error: any) {
       console.error('Upload error:', error);
       toast.error(error.message || 'Failed to upload video');
+      setUploadStatus('idle');
     }
 
     setIsUploading(false);
@@ -203,12 +230,10 @@ const Upload = () => {
             >
               {isUploading ? (
                 <span className="flex items-center gap-2">
-                  <motion.div
-                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  />
-                  Uploading...
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {uploadStatus === 'uploading' && 'Uploading video...'}
+                  {uploadStatus === 'moderating' && 'AI reviewing content...'}
+                  {uploadStatus === 'done' && 'Done!'}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
@@ -217,6 +242,15 @@ const Upload = () => {
                 </span>
               )}
             </Button>
+          </div>
+
+          {/* Educational content notice */}
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50 border border-border/50">
+            <Shield className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-muted-foreground">
+              <p className="font-medium text-foreground mb-1">AI Content Review</p>
+              <p>All uploads are automatically reviewed by AI to ensure educational value. Non-educational content will be flagged for review or rejected.</p>
+            </div>
           </div>
 
           <p className="text-xs text-muted-foreground text-center">

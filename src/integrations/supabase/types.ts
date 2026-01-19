@@ -266,6 +266,41 @@ export type Database = {
         }
         Relationships: []
       }
+      moderation_logs: {
+        Row: {
+          classification: string
+          confidence: string | null
+          created_at: string
+          id: string
+          raw_response: string | null
+          short_id: string
+        }
+        Insert: {
+          classification: string
+          confidence?: string | null
+          created_at?: string
+          id?: string
+          raw_response?: string | null
+          short_id: string
+        }
+        Update: {
+          classification?: string
+          confidence?: string | null
+          created_at?: string
+          id?: string
+          raw_response?: string | null
+          short_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_logs_short_id_fkey"
+            columns: ["short_id"]
+            isOneToOne: false
+            referencedRelation: "shorts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -447,9 +482,14 @@ export type Database = {
           description: string | null
           id: string
           is_approved: boolean
+          is_educational: boolean | null
           likes_count: number
+          moderated_at: string | null
+          moderation_result: string | null
+          moderation_status: string | null
           thumbnail_url: string | null
           title: string
+          transcript: string | null
           user_id: string
           video_url: string
           views_count: number
@@ -460,9 +500,14 @@ export type Database = {
           description?: string | null
           id?: string
           is_approved?: boolean
+          is_educational?: boolean | null
           likes_count?: number
+          moderated_at?: string | null
+          moderation_result?: string | null
+          moderation_status?: string | null
           thumbnail_url?: string | null
           title: string
+          transcript?: string | null
           user_id: string
           video_url: string
           views_count?: number
@@ -473,9 +518,14 @@ export type Database = {
           description?: string | null
           id?: string
           is_approved?: boolean
+          is_educational?: boolean | null
           likes_count?: number
+          moderated_at?: string | null
+          moderation_result?: string | null
+          moderation_status?: string | null
           thumbnail_url?: string | null
           title?: string
+          transcript?: string | null
           user_id?: string
           video_url?: string
           views_count?: number
