@@ -68,32 +68,26 @@ export const useShorts = (category?: string, searchQuery?: string) => {
     if (!short) return;
 
     if (short.isLiked) {
+      // Delete like - trigger handles count update atomically
       await supabase
         .from('likes')
         .delete()
         .eq('user_id', user.id)
         .eq('short_id', shortId);
 
-      await supabase
-        .from('shorts')
-        .update({ likes_count: short.likes_count - 1 })
-        .eq('id', shortId);
-
+      // Update local state optimistically
       setShorts(prev => prev.map(s => 
         s.id === shortId 
-          ? { ...s, isLiked: false, likes_count: s.likes_count - 1 }
+          ? { ...s, isLiked: false, likes_count: Math.max(0, s.likes_count - 1) }
           : s
       ));
     } else {
+      // Insert like - trigger handles count update atomically
       await supabase
         .from('likes')
         .insert({ user_id: user.id, short_id: shortId });
 
-      await supabase
-        .from('shorts')
-        .update({ likes_count: short.likes_count + 1 })
-        .eq('id', shortId);
-
+      // Update local state optimistically
       setShorts(prev => prev.map(s => 
         s.id === shortId 
           ? { ...s, isLiked: true, likes_count: s.likes_count + 1 }
@@ -115,20 +109,11 @@ export const useShorts = (category?: string, searchQuery?: string) => {
 
     if (existingView) return 0;
 
-    // Record new view
+    // Record new view - trigger handles views_count update atomically
     const xpEarned = 5;
     await supabase
       .from('short_views')
       .insert({ user_id: user.id, short_id: shortId, xp_earned: xpEarned });
-
-    // Update views count
-    const short = shorts.find(s => s.id === shortId);
-    if (short) {
-      await supabase
-        .from('shorts')
-        .update({ views_count: short.views_count + 1 })
-        .eq('id', shortId);
-    }
 
     return xpEarned;
   };
