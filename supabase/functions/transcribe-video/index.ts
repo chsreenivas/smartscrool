@@ -23,7 +23,13 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
@@ -39,28 +45,17 @@ serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
-    console.log(`AI Tutor request from user: ${userId}`);
+    console.log(`Transcribe request from user: ${userId}`);
 
-    const { messages, videoContext } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const { shortId, title, description } = await req.json();
+
+    if (!shortId || !title) {
+      throw new Error("shortId and title are required");
     }
 
-    const systemPrompt = `You are BrainBot, a friendly AI tutor helping teens and students learn from educational videos. You're knowledgeable, encouraging, and explain concepts in simple terms.
-
-${videoContext ? `The student is watching a video about: ${videoContext.title}
-Description: ${videoContext.description || 'N/A'}
-Category: ${videoContext.category}` : ''}
-
-Guidelines:
-- Be encouraging and supportive
-- Explain concepts simply, using analogies when helpful
-- If the student seems confused, break things down further
-- Suggest related topics to explore
-- Keep responses concise but helpful (2-3 paragraphs max)
-- Use emojis occasionally to be friendly 🧠✨`;
+    // Generate a simulated transcript using AI based on title/description
+    // In production, you'd use a proper speech-to-text service
+    console.log(`Generating transcript for short ${shortId}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -69,12 +64,19 @@ Guidelines:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: systemPrompt },
-          ...messages
+          {
+            role: "system",
+            content: `You are generating a realistic educational video transcript based on the title and description provided. Create a concise, educational script that would fit a 60-second video. Keep it under 200 words.`
+          },
+          {
+            role: "user",
+            content: `Generate a transcript for this educational video:\nTitle: ${title}\nDescription: ${description || 'N/A'}`
+          }
         ],
-        stream: true
+        max_tokens: 300,
+        temperature: 0.7,
       }),
     });
 
@@ -96,13 +98,33 @@ Guidelines:
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    // Return the streaming response directly
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" }
-    });
+    const aiResponse = await response.json();
+    const transcript = aiResponse.choices?.[0]?.message?.content?.trim() || "";
+
+    console.log(`Generated transcript for ${shortId}: ${transcript.substring(0, 100)}...`);
+
+    // Update the short with the transcript using service role
+    const supabaseService = createClient(supabaseUrl, SUPABASE_SERVICE_ROLE_KEY);
+    
+    const { error: updateError } = await supabaseService
+      .from("shorts")
+      .update({ transcript })
+      .eq("id", shortId);
+
+    if (updateError) {
+      console.error("Failed to update short with transcript:", updateError);
+      throw new Error(`Failed to save transcript: ${updateError.message}`);
+    }
+
+    console.log(`Transcript saved for ${shortId}`);
+
+    return new Response(
+      JSON.stringify({ success: true, transcript }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
 
   } catch (error) {
-    console.error("Error in ai-tutor:", error);
+    console.error("Error in transcribe-video:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

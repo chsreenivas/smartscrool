@@ -21,7 +21,7 @@ const Upload = () => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'moderating' | 'done'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'transcribing' | 'moderating' | 'done'>('idle');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,7 +86,23 @@ const Upload = () => {
 
       if (insertError) throw insertError;
 
-      // Trigger AI moderation
+      // Step 1: Generate transcript
+      setUploadStatus('transcribing');
+      
+      const { data: transcriptResult, error: transcriptError } = await supabase.functions.invoke('transcribe-video', {
+        body: {
+          shortId: shortData.id,
+          title,
+          description,
+        }
+      });
+
+      const transcript = transcriptResult?.transcript || null;
+      if (transcriptError) {
+        console.warn('Transcription skipped:', transcriptError);
+      }
+
+      // Step 2: AI moderation with transcript
       setUploadStatus('moderating');
       
       const { data: moderationResult, error: moderationError } = await supabase.functions.invoke('moderate-video', {
@@ -94,7 +110,7 @@ const Upload = () => {
           short_id: shortData.id,
           title,
           description,
-          // transcript would come from a transcription service in production
+          transcript,
         }
       });
 
