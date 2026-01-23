@@ -12,6 +12,7 @@ import Upload from "./pages/Upload";
 import Profile from "./pages/Profile";
 import Social from "./pages/Social";
 import Admin from "./pages/Admin";
+import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/social" element={<Social />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

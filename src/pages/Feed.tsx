@@ -1,13 +1,16 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, User, Upload, Flame, Zap, X, Brain, Users } from 'lucide-react';
+import { Search, User, Upload, Flame, Zap, X, Brain, Users, Shield } from 'lucide-react';
 import { VideoShort } from '@/components/VideoShort';
 import { useShorts } from '@/hooks/useShorts';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuizCheckpoint } from '@/hooks/useQuizCheckpoint';
+import { QuizCheckpointModal } from '@/components/QuizCheckpointModal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const categories = ['All', 'Science', 'History', 'Psychology', 'Money', 'Technology'];
 
@@ -23,6 +26,13 @@ const Feed = () => {
 
   const { shorts, loading, toggleLike, recordView } = useShorts(selectedCategory, searchQuery);
   const { profile, addXP } = useProfile();
+  const { 
+    shouldShowQuiz, 
+    checkpointQuiz, 
+    videosUntilQuiz,
+    recordVideoViewed, 
+    completeCheckpoint 
+  } = useQuizCheckpoint();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -104,8 +114,17 @@ const Feed = () => {
     const xp = await recordView(shortId);
     if (xp > 0) {
       addXP(xp);
+      recordVideoViewed(); // Track for quiz checkpoint
     }
     return xp;
+  };
+
+  const handleCheckpointComplete = (isCorrect: boolean, xpEarned: number) => {
+    if (isCorrect) {
+      addXP(xpEarned);
+      toast.success(`Checkpoint passed! +${xpEarned} XP`);
+    }
+    completeCheckpoint();
   };
 
   if (loading || authLoading) {
@@ -246,6 +265,7 @@ const Feed = () => {
       </div>
 
       {/* Progress Dots */}
+      {/* Progress Dots */}
       {shorts.length > 0 && (
         <div className="fixed right-2 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-1">
           {shorts.slice(0, 10).map((_, index) => (
@@ -259,6 +279,27 @@ const Feed = () => {
           ))}
         </div>
       )}
+
+      {/* Videos until quiz indicator */}
+      {videosUntilQuiz <= 5 && videosUntilQuiz > 0 && (
+        <motion.div
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-full bg-primary/80 backdrop-blur-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <span className="text-primary-foreground text-sm font-medium">
+            📚 Quiz checkpoint in {videosUntilQuiz} video{videosUntilQuiz !== 1 ? 's' : ''}!
+          </span>
+        </motion.div>
+      )}
+
+      {/* Quiz Checkpoint Modal */}
+      <QuizCheckpointModal
+        isOpen={shouldShowQuiz}
+        quiz={checkpointQuiz}
+        onComplete={handleCheckpointComplete}
+        videosWatched={25}
+      />
     </div>
   );
 };

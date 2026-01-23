@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Share2, Play, Pause, Volume2, VolumeX, HelpCircle, MessageSquare, Send } from 'lucide-react';
+import { Heart, Play, Volume2, VolumeX, HelpCircle, MessageSquare, Send, Flag } from 'lucide-react';
 import { Short } from '@/hooks/useShorts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuizzes, Quiz } from '@/hooks/useQuizzes';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { QuizOverlay } from './QuizOverlay';
 import { SharePanel } from './SharePanel';
 import { AITutorChat } from './AITutorChat';
+import { ReportModal } from './ReportModal';
 
 interface VideoShortProps {
   short: Short;
@@ -25,6 +26,7 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
   const [showQuiz, setShowQuiz] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showTutor, setShowTutor] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [hasAttemptedQuiz, setHasAttemptedQuiz] = useState(false);
   const { user } = useAuth();
@@ -139,6 +141,14 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
     } else {
       toast.error('Incorrect. Keep learning!');
     }
+  };
+
+  const handleReport = () => {
+    if (!user) {
+      toast.error('Please sign in to report content');
+      return;
+    }
+    setShowReport(true);
   };
 
   return (
@@ -286,6 +296,18 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
           </div>
           <span className="text-white text-xs mt-1 font-medium">{isMuted ? 'Unmute' : 'Mute'}</span>
         </motion.button>
+
+        {/* Report */}
+        <motion.button
+          onClick={handleReport}
+          whileTap={{ scale: 0.9 }}
+          className="flex flex-col items-center"
+        >
+          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <Flag className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-white text-xs mt-1 font-medium">Report</span>
+        </motion.button>
       </div>
 
       {/* Swipe hint */}
@@ -322,6 +344,14 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
         shortTitle={short.title}
         shortDescription={short.description}
         category={short.category}
+      />
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        shortId={short.id}
+        shortTitle={short.title}
       />
     </div>
   );

@@ -12,8 +12,38 @@ serve(async (req) => {
   }
 
   try {
+    // Validate JWT authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+    console.log(`AI Generate request from user: ${userId}`);
+
     const { type, shortId, transcript, title, description } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -154,13 +184,11 @@ Provide a summary, 3-5 key points, and 2-3 related topics to explore.`;
     const result = JSON.parse(toolCall.function.arguments);
     console.log(`Generated ${type}:`, result);
 
-    // Save to database
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Save to database using service role
+    const supabaseService = createClient(supabaseUrl, SUPABASE_SERVICE_ROLE_KEY);
 
     if (type === "quiz") {
-      const { error: quizError } = await supabase
+      const { error: quizError } = await supabaseService
         .from('quizzes')
         .upsert({
           short_id: shortId,
@@ -175,7 +203,7 @@ Provide a summary, 3-5 key points, and 2-3 related topics to explore.`;
         console.error("Error saving quiz:", quizError);
       }
     } else if (type === "summary") {
-      const { error: summaryError } = await supabase
+      const { error: summaryError } = await supabaseService
         .from('ai_summaries')
         .upsert({
           short_id: shortId,
