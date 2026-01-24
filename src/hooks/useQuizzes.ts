@@ -1,15 +1,12 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProfile } from './useProfile';
 
 export interface Quiz {
   id: string;
   short_id: string;
   question: string;
   options: string[];
-  correct_answer: number;
-  explanation: string | null;
   xp_reward: number;
   created_at: string;
 }
@@ -24,36 +21,41 @@ export interface QuizAttempt {
   created_at: string;
 }
 
+export interface QuizResult {
+  isCorrect: boolean;
+  xpEarned: number;
+  correctAnswer: number | null;
+  error: string | null;
+}
+
 export const useQuizzes = () => {
   const { user } = useAuth();
-  const { addXP } = useProfile();
   const [loading, setLoading] = useState(false);
 
+  // Fetch quiz from the secure RPC function (excludes correct_answer)
   const getQuizForShort = async (shortId: string): Promise<Quiz | null> => {
     try {
-      const { data, error } = await (supabase
-        .from('quizzes' as any)
-        .select('*')
-        .eq('short_id', shortId)
-        .single() as any);
+      const { data, error } = await supabase.rpc('get_quiz_for_short', { 
+        p_short_id: shortId 
+      });
 
       if (error) {
-        if (error.code === 'PGRST116') return null; // No quiz found
-        throw error;
+        if (error.code === 'PGRST116') return null;
+        console.error('Error fetching quiz:', error);
+        return null;
       }
 
-      if (!data) return null;
+      if (!data || data.length === 0) return null;
 
+      const quiz = data[0];
       return {
-        id: data.id,
-        short_id: data.short_id,
-        question: data.question,
-        options: data.options as string[],
-        correct_answer: data.correct_answer,
-        explanation: data.explanation,
-        xp_reward: data.xp_reward,
-        created_at: data.created_at
-      } as Quiz;
+        id: quiz.id,
+        short_id: quiz.short_id,
+        question: quiz.question,
+        options: quiz.options as string[],
+        xp_reward: quiz.xp_reward,
+        created_at: quiz.created_at
+      };
     } catch (error) {
       console.error('Error fetching quiz:', error);
       return null;
@@ -79,41 +81,40 @@ export const useQuizzes = () => {
     }
   };
 
+  // Use server-side function to submit answer (prevents cheating)
   const submitAnswer = async (
     quiz: Quiz,
     selectedAnswer: number
-  ): Promise<{ isCorrect: boolean; xpEarned: number; error: string | null }> => {
+  ): Promise<QuizResult> => {
     if (!user) {
-      return { isCorrect: false, xpEarned: 0, error: 'Not authenticated' };
+      return { isCorrect: false, xpEarned: 0, correctAnswer: null, error: 'Not authenticated' };
     }
 
     setLoading(true);
     try {
-      const isCorrect = selectedAnswer === quiz.correct_answer;
-      const xpEarned = isCorrect ? quiz.xp_reward : 0;
-
-      // Record the attempt
-      const { error } = await (supabase
-        .from('quiz_attempts' as any)
-        .insert({
-          user_id: user.id,
-          quiz_id: quiz.id,
-          selected_answer: selectedAnswer,
-          is_correct: isCorrect,
-          xp_earned: xpEarned
-        }) as any);
+      // Call secure server-side function
+      const { data, error } = await supabase.rpc('submit_quiz_answer', {
+        p_quiz_id: quiz.id,
+        p_selected_answer: selectedAnswer
+      });
 
       if (error) throw error;
 
-      // Add XP to profile if correct
-      if (xpEarned > 0) {
-        await addXP(xpEarned);
+      const result = data as { success: boolean; is_correct?: boolean; xp_earned?: number; correct_answer?: number; error?: string };
+
+      if (!result.success) {
+        return { isCorrect: false, xpEarned: 0, correctAnswer: null, error: result.error || 'Unknown error' };
       }
 
-      return { isCorrect, xpEarned, error: null };
+      return { 
+        isCorrect: result.is_correct || false, 
+        xpEarned: result.xp_earned || 0, 
+        correctAnswer: result.correct_answer ?? null,
+        error: null 
+      };
     } catch (error: any) {
       console.error('Error submitting answer:', error);
-      return { isCorrect: false, xpEarned: 0, error: error.message };
+      return { isCorrect: false, xpEarned: 0, correctAnswer: null, error: error.message };
     } finally {
       setLoading(false);
     }

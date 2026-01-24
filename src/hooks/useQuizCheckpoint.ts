@@ -41,28 +41,43 @@ export const useQuizCheckpoint = (): QuizCheckpoint => {
     }
   }, [user, videosViewed]);
 
-  // Fetch a random quiz when checkpoint is reached
+  // Fetch a random quiz when checkpoint is reached using secure RPC
   const fetchRandomQuiz = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('quizzes')
-      .select('*')
-      .limit(10);
+    // Get all quiz short_ids first using the secure RPC
+    const { data: shorts, error: shortsError } = await supabase
+      .from('shorts')
+      .select('id')
+      .eq('is_approved', true)
+      .limit(50);
 
-    if (!error && data && data.length > 0) {
-      // Pick a random quiz
-      const randomIndex = Math.floor(Math.random() * data.length);
-      const quiz = data[randomIndex];
-      setCheckpointQuiz({
-        id: quiz.id,
-        short_id: quiz.short_id,
-        question: quiz.question,
-        options: quiz.options as string[],
-        correct_answer: quiz.correct_answer,
-        explanation: (quiz as any).explanation || '',
-        xp_reward: quiz.xp_reward,
-        created_at: quiz.created_at
-      });
+    if (shortsError || !shorts || shorts.length === 0) {
+      console.error('No shorts available for quiz');
+      return;
     }
+
+    // Try to find a quiz for a random short
+    const shuffledShorts = [...shorts].sort(() => Math.random() - 0.5);
+    
+    for (const short of shuffledShorts) {
+      const { data, error } = await supabase.rpc('get_quiz_for_short', {
+        p_short_id: short.id
+      });
+
+      if (!error && data && data.length > 0) {
+        const quiz = data[0];
+        setCheckpointQuiz({
+          id: quiz.id,
+          short_id: quiz.short_id,
+          question: quiz.question,
+          options: quiz.options as string[],
+          xp_reward: quiz.xp_reward,
+          created_at: quiz.created_at
+        });
+        return;
+      }
+    }
+    
+    console.log('No quizzes found for any shorts');
   }, []);
 
   const recordVideoViewed = useCallback(() => {

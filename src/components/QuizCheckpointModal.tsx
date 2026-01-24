@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, CheckCircle, XCircle, Zap, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Quiz, useQuizzes } from '@/hooks/useQuizzes';
+import { Quiz, QuizResult, useQuizzes } from '@/hooks/useQuizzes';
 
 interface QuizCheckpointModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export const QuizCheckpointModal = ({
 }: QuizCheckpointModalProps) => {
   const { submitAnswer, loading } = useQuizzes();
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [result, setResult] = useState<{ isCorrect: boolean; xpEarned: number } | null>(null);
+  const [result, setResult] = useState<QuizResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -33,10 +33,7 @@ export const QuizCheckpointModal = ({
       return;
     }
     
-    setResult({
-      isCorrect: submitResult.isCorrect,
-      xpEarned: submitResult.xpEarned
-    });
+    setResult(submitResult);
     setIsSubmitting(false);
   };
 
@@ -167,15 +164,12 @@ export const QuizCheckpointModal = ({
                       <h3 className="text-2xl font-bold text-red-500 mb-2">
                         Not quite!
                       </h3>
-                      <p className="text-muted-foreground mb-4">
-                        The correct answer was:{' '}
-                        <span className="font-medium text-foreground">
-                          {quiz.options[quiz.correct_answer]}
-                        </span>
-                      </p>
-                      {quiz.explanation && (
-                        <p className="text-sm text-muted-foreground bg-secondary/50 p-3 rounded-lg mb-6">
-                          💡 {quiz.explanation}
+                      {result.correctAnswer !== null && (
+                        <p className="text-muted-foreground mb-4">
+                          The correct answer was:{' '}
+                          <span className="font-medium text-foreground">
+                            {quiz.options[result.correctAnswer]}
+                          </span>
                         </p>
                       )}
                     </>

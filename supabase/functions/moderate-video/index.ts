@@ -22,15 +22,43 @@ serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
       throw new Error("Supabase credentials not configured");
     }
+
+    // Authenticate the request - require valid JWT
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify JWT token
+    const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+    console.log(`Moderation request from user: ${userId}`);
 
     const { short_id, title, description, transcript } = await req.json() as ModerationRequest;
 
@@ -40,6 +68,27 @@ serve(async (req) => {
 
     // Create Supabase client with service role for bypassing RLS
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Verify the user owns this short before moderating
+    const { data: shortData, error: shortError } = await supabase
+      .from("shorts")
+      .select("user_id")
+      .eq("id", short_id)
+      .single();
+
+    if (shortError || !shortData) {
+      return new Response(
+        JSON.stringify({ error: 'Short not found' }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (shortData.user_id !== userId) {
+      return new Response(
+        JSON.stringify({ error: 'You can only moderate your own shorts' }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Build content for moderation - use transcript if available, otherwise use title/description
     const contentToModerate = transcript 
@@ -130,7 +179,7 @@ You must respond with ONLY one word: 'Educational' or 'Non-educational'.`
       throw new Error(`Failed to update short: ${updateError.message}`);
     }
 
-    // Log moderation result (for audit trail)
+    // Log moderation result (for audit trail) - using service role to bypass RLS
     const { error: logError } = await supabase
       .from("moderation_logs")
       .insert({

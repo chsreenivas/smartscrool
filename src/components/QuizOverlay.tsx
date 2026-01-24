@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, XCircle, Zap, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Quiz, useQuizzes } from '@/hooks/useQuizzes';
+import { Quiz, QuizResult, useQuizzes } from '@/hooks/useQuizzes';
 
 interface QuizOverlayProps {
   isOpen: boolean;
@@ -14,7 +14,7 @@ interface QuizOverlayProps {
 export const QuizOverlay = ({ isOpen, onClose, quiz, onComplete }: QuizOverlayProps) => {
   const { hasAttemptedQuiz, submitAnswer, loading } = useQuizzes();
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [result, setResult] = useState<{ isCorrect: boolean; xpEarned: number } | null>(null);
+  const [result, setResult] = useState<QuizResult | null>(null);
   const [alreadyAttempted, setAlreadyAttempted] = useState(false);
   const [loadingQuiz, setLoadingQuiz] = useState(true);
 
@@ -35,7 +35,7 @@ export const QuizOverlay = ({ isOpen, onClose, quiz, onComplete }: QuizOverlayPr
     
     const response = await submitAnswer(quiz, selectedAnswer);
     if (!response.error) {
-      setResult({ isCorrect: response.isCorrect, xpEarned: response.xpEarned });
+      setResult(response);
       onComplete?.(response.isCorrect, response.xpEarned);
     }
   };
@@ -101,11 +101,6 @@ export const QuizOverlay = ({ isOpen, onClose, quiz, onComplete }: QuizOverlayPr
                       <Zap className="w-6 h-6" />
                       <span className="text-xl font-bold">+{result.xpEarned} XP</span>
                     </div>
-                    {quiz.explanation && (
-                      <p className="text-muted-foreground text-center text-sm">
-                        {quiz.explanation}
-                      </p>
-                    )}
                   </>
                 ) : (
                   <>
@@ -117,12 +112,9 @@ export const QuizOverlay = ({ isOpen, onClose, quiz, onComplete }: QuizOverlayPr
                       <XCircle className="w-20 h-20 text-destructive mb-4" />
                     </motion.div>
                     <h3 className="text-2xl font-bold text-destructive mb-2">Not quite!</h3>
-                    <p className="text-muted-foreground text-center mb-4">
-                      The correct answer was: <strong>{quiz.options[quiz.correct_answer]}</strong>
-                    </p>
-                    {quiz.explanation && (
-                      <p className="text-muted-foreground text-center text-sm">
-                        {quiz.explanation}
+                    {result.correctAnswer !== null && (
+                      <p className="text-muted-foreground text-center mb-4">
+                        The correct answer was: <strong>{quiz.options[result.correctAnswer]}</strong>
                       </p>
                     )}
                   </>
