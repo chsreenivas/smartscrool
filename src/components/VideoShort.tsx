@@ -9,16 +9,25 @@ import { QuizOverlay } from './QuizOverlay';
 import { SharePanel } from './SharePanel';
 import { AITutorChat } from './AITutorChat';
 import { ReportModal } from './ReportModal';
+import { PopularityBadge } from './PopularityBadge';
+import { DifficultyBadge } from './DifficultyBadge';
+
+interface ExtendedShort extends Short {
+  difficulty_level?: string;
+  ai_summary?: string | null;
+  topics?: string[];
+}
 
 interface VideoShortProps {
-  short: Short;
+  short: ExtendedShort;
   isActive: boolean;
   onLike: () => void;
   onView: () => void;
   xpEarned?: number;
+  showStarterBadge?: boolean;
 }
 
-export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoShortProps) => {
+export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStarterBadge }: VideoShortProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -96,7 +105,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
 
   const handleShare = () => {
     if (!user) {
-      // Fallback to native share for non-authenticated users
       navigator.share?.({
         title: short.title,
         text: short.description || '',
@@ -151,8 +159,10 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
     setShowReport(true);
   };
 
+  const difficultyLevel = short.difficulty_level as 'easy' | 'medium' | 'hard' | undefined;
+
   return (
-    <div className="relative w-full h-full bg-black">
+    <div className="relative w-full h-full bg-background">
       {/* Video */}
       <video
         ref={videoRef}
@@ -196,6 +206,28 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
         )}
       </AnimatePresence>
 
+      {/* Top Badges */}
+      <div className="absolute top-20 left-4 right-16 flex flex-wrap gap-2">
+        {/* Popularity Badge */}
+        <PopularityBadge viewCount={short.views_count} size="sm" />
+        
+        {/* Difficulty Badge */}
+        {difficultyLevel && (
+          <DifficultyBadge level={difficultyLevel} size="sm" />
+        )}
+        
+        {/* Starter Badge */}
+        {showStarterBadge && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="px-2 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary backdrop-blur-sm"
+          >
+            ⭐ Recommended
+          </motion.div>
+        )}
+      </div>
+
       {/* Bottom Gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
 
@@ -204,15 +236,35 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned }: VideoS
         <h2 className="text-xl font-bold text-white mb-2 drop-shadow-lg">
           {short.title}
         </h2>
+        
+        {/* AI Summary */}
+        {short.ai_summary && (
+          <p className="text-white/80 text-sm mb-2 drop-shadow-lg italic">
+            💡 {short.ai_summary}
+          </p>
+        )}
+        
         {short.description && (
           <p className="text-white/90 text-sm drop-shadow-lg line-clamp-2">
             {short.description}
           </p>
         )}
-        <div className="flex items-center gap-2 mt-2">
+        
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
           <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-medium backdrop-blur-sm">
             {short.category}
           </span>
+          
+          {/* Topic Tags */}
+          {short.topics && short.topics.slice(0, 2).map((topic, i) => (
+            <span 
+              key={i}
+              className="px-2 py-1 rounded-full bg-white/10 text-white/80 text-xs backdrop-blur-sm"
+            >
+              #{topic}
+            </span>
+          ))}
+          
           {quiz && !hasAttemptedQuiz && (
             <span className="px-3 py-1 rounded-full bg-primary/80 text-primary-foreground text-xs font-medium backdrop-blur-sm animate-pulse">
               Quiz Available!
