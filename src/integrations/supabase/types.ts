@@ -373,6 +373,13 @@ export type Database = {
             referencedRelation: "quizzes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "quiz_attempts_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       quizzes: {
@@ -582,14 +589,87 @@ export type Database = {
         }
         Relationships: []
       }
+      xp_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          reference_id: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          source: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      quizzes_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          options: Json | null
+          question: string | null
+          short_id: string | null
+          xp_reward: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          question?: string | null
+          short_id?: string | null
+          xp_reward?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          options?: Json | null
+          question?: string | null
+          short_id?: string | null
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       are_friends: {
         Args: { user_id_1: string; user_id_2: string }
         Returns: boolean
+      }
+      award_xp: {
+        Args: {
+          p_amount: number
+          p_reference_id?: string
+          p_source: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      get_quiz_for_short: {
+        Args: { p_short_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          options: Json
+          question: string
+          short_id: string
+          xp_reward: number
+        }[]
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       search_users_by_username: {
@@ -599,6 +679,10 @@ export type Database = {
           id: string
           username: string
         }[]
+      }
+      submit_quiz_answer: {
+        Args: { p_quiz_id: string; p_selected_answer: number }
+        Returns: Json
       }
     }
     Enums: {

@@ -51,44 +51,54 @@ export const useProfile = () => {
     }
   };
 
-  const addXP = async (amount: number) => {
-    if (!user || !profile) return;
-
-    const today = new Date().toISOString().split('T')[0];
-    const lastActivity = profile.last_activity_date;
-    
-    let newStreak = profile.streak;
-    if (lastActivity) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-      
-      if (lastActivity === yesterdayStr) {
-        newStreak = profile.streak + 1;
-      } else if (lastActivity !== today) {
-        newStreak = 1;
-      }
-    } else {
-      newStreak = 1;
-    }
+  const updateUsername = async (username: string) => {
+    if (!user) return;
 
     const { error } = await supabase
       .from('profiles')
-      .update({
-        xp: profile.xp + amount,
-        streak: newStreak,
-        last_activity_date: today,
-        updated_at: new Date().toISOString()
-      })
+      .update({ username })
       .eq('id', user.id);
 
     if (!error) {
-      setProfile(prev => prev ? {
-        ...prev,
-        xp: prev.xp + amount,
-        streak: newStreak,
-        last_activity_date: today
-      } : null);
+      setProfile(prev => prev ? { ...prev, username } : null);
+    }
+  };
+
+  const updateAvatar = async (avatar_url: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ avatar_url })
+      .eq('id', user.id);
+
+    if (!error) {
+      setProfile(prev => prev ? { ...prev, avatar_url } : null);
+    }
+  };
+
+  // Use secure server-side function to award XP
+  // This prevents client-side XP manipulation
+  const addXP = async (amount: number, source: 'view' | 'quiz' | 'achievement' | 'streak' = 'view', referenceId?: string) => {
+    if (!user || !profile) return;
+
+    try {
+      const { error } = await supabase.rpc('award_xp', {
+        p_user_id: user.id,
+        p_amount: amount,
+        p_source: source,
+        p_reference_id: referenceId || null
+      });
+
+      if (error) {
+        console.error('Error awarding XP:', error);
+        return;
+      }
+
+      // Refetch profile to get updated values
+      await fetchProfile();
+    } catch (error) {
+      console.error('Error in addXP:', error);
     }
   };
 
@@ -96,5 +106,5 @@ export const useProfile = () => {
     fetchProfile();
   }, [user]);
 
-  return { profile, loading, updateInterests, addXP, refetch: fetchProfile };
+  return { profile, loading, updateInterests, updateUsername, updateAvatar, addXP, refetch: fetchProfile };
 };
