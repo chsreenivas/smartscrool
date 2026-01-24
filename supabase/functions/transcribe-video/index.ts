@@ -53,9 +53,8 @@ serve(async (req) => {
       throw new Error("shortId and title are required");
     }
 
-    // Generate a simulated transcript using AI based on title/description
-    // In production, you'd use a proper speech-to-text service
-    console.log(`Generating transcript for short ${shortId}`);
+    // Generate transcript, summary, difficulty, and topics using AI
+    console.log(`Generating content analysis for short ${shortId}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -64,18 +63,46 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-3-flash-preview",
         messages: [
           {
             role: "system",
-            content: `You are generating a realistic educational video transcript based on the title and description provided. Create a concise, educational script that would fit a 60-second video. Keep it under 200 words.`
+            content: `You are an educational content analyzer. Generate a realistic transcript, summary, difficulty rating, and topic tags for educational videos.`
           },
           {
             role: "user",
-            content: `Generate a transcript for this educational video:\nTitle: ${title}\nDescription: ${description || 'N/A'}`
+            content: `Analyze this educational video and generate:
+1. A realistic transcript (under 200 words) as if narrating the video
+2. A 1-2 sentence summary highlighting the key learning point
+3. Difficulty level: easy, medium, or hard (based on complexity)
+4. 3-5 topic tags
+
+Title: ${title}
+Description: ${description || 'N/A'}`
           }
         ],
-        max_tokens: 300,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "analyze_video",
+              description: "Analyze educational video content",
+              parameters: {
+                type: "object",
+                properties: {
+                  transcript: { type: "string", description: "Educational video transcript, under 200 words" },
+                  summary: { type: "string", description: "1-2 sentence summary of key learning point" },
+                  difficulty_level: { type: "string", enum: ["easy", "medium", "hard"], description: "Content difficulty" },
+                  topics: { type: "array", items: { type: "string" }, description: "3-5 relevant topic tags" }
+                },
+                required: ["transcript", "summary", "difficulty_level", "topics"],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: "function", function: { name: "analyze_video" } },
+        max_tokens: 500,
         temperature: 0.7,
       }),
     });
@@ -99,27 +126,55 @@ serve(async (req) => {
     }
 
     const aiResponse = await response.json();
-    const transcript = aiResponse.choices?.[0]?.message?.content?.trim() || "";
+    const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
+    
+    let analysis = {
+      transcript: "",
+      summary: "",
+      difficulty_level: "medium",
+      topics: [] as string[]
+    };
 
-    console.log(`Generated transcript for ${shortId}: ${transcript.substring(0, 100)}...`);
+    if (toolCall?.function?.arguments) {
+      try {
+        analysis = JSON.parse(toolCall.function.arguments);
+      } catch (e) {
+        console.error("Failed to parse AI response:", e);
+        // Fallback to text response
+        analysis.transcript = aiResponse.choices?.[0]?.message?.content?.trim() || "";
+      }
+    }
 
-    // Update the short with the transcript using service role
+    console.log(`Generated analysis for ${shortId}: difficulty=${analysis.difficulty_level}, topics=${analysis.topics.join(', ')}`);
+
+    // Update the short with all generated content
     const supabaseService = createClient(supabaseUrl, SUPABASE_SERVICE_ROLE_KEY);
     
     const { error: updateError } = await supabaseService
       .from("shorts")
-      .update({ transcript })
+      .update({ 
+        transcript: analysis.transcript,
+        ai_summary: analysis.summary,
+        difficulty_level: analysis.difficulty_level,
+        topics: analysis.topics
+      })
       .eq("id", shortId);
 
     if (updateError) {
-      console.error("Failed to update short with transcript:", updateError);
-      throw new Error(`Failed to save transcript: ${updateError.message}`);
+      console.error("Failed to update short with analysis:", updateError);
+      throw new Error(`Failed to save analysis: ${updateError.message}`);
     }
 
-    console.log(`Transcript saved for ${shortId}`);
+    console.log(`Analysis saved for ${shortId}`);
 
     return new Response(
-      JSON.stringify({ success: true, transcript }),
+      JSON.stringify({ 
+        success: true, 
+        transcript: analysis.transcript,
+        summary: analysis.summary,
+        difficulty_level: analysis.difficulty_level,
+        topics: analysis.topics
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 

@@ -83,6 +83,42 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_goals: {
+        Row: {
+          completed: boolean
+          created_at: string
+          date: string
+          goal_type: string
+          id: string
+          progress: number
+          subject: string | null
+          target: number
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          date?: string
+          goal_type: string
+          id?: string
+          progress?: number
+          subject?: string | null
+          target?: number
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          date?: string
+          goal_type?: string
+          id?: string
+          progress?: number
+          subject?: string | null
+          target?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -303,34 +339,46 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accessibility_settings: Json | null
           avatar_url: string | null
           created_at: string
+          daily_goal_target: number | null
           id: string
           interests: string[] | null
           last_activity_date: string | null
           streak: number
+          theme_animation: string | null
+          theme_background: string | null
           updated_at: string
           username: string | null
           xp: number
         }
         Insert: {
+          accessibility_settings?: Json | null
           avatar_url?: string | null
           created_at?: string
+          daily_goal_target?: number | null
           id: string
           interests?: string[] | null
           last_activity_date?: string | null
           streak?: number
+          theme_animation?: string | null
+          theme_background?: string | null
           updated_at?: string
           username?: string | null
           xp?: number
         }
         Update: {
+          accessibility_settings?: Json | null
           avatar_url?: string | null
           created_at?: string
+          daily_goal_target?: number | null
           id?: string
           interests?: string[] | null
           last_activity_date?: string | null
           streak?: number
+          theme_animation?: string | null
+          theme_background?: string | null
           updated_at?: string
           username?: string | null
           xp?: number
@@ -484,9 +532,11 @@ export type Database = {
       }
       shorts: {
         Row: {
+          ai_summary: string | null
           category: string
           created_at: string
           description: string | null
+          difficulty_level: string | null
           id: string
           is_approved: boolean
           is_educational: boolean | null
@@ -496,15 +546,18 @@ export type Database = {
           moderation_status: string | null
           thumbnail_url: string | null
           title: string
+          topics: string[] | null
           transcript: string | null
           user_id: string
           video_url: string
           views_count: number
         }
         Insert: {
+          ai_summary?: string | null
           category: string
           created_at?: string
           description?: string | null
+          difficulty_level?: string | null
           id?: string
           is_approved?: boolean
           is_educational?: boolean | null
@@ -514,15 +567,18 @@ export type Database = {
           moderation_status?: string | null
           thumbnail_url?: string | null
           title: string
+          topics?: string[] | null
           transcript?: string | null
           user_id: string
           video_url: string
           views_count?: number
         }
         Update: {
+          ai_summary?: string | null
           category?: string
           created_at?: string
           description?: string | null
+          difficulty_level?: string | null
           id?: string
           is_approved?: boolean
           is_educational?: boolean | null
@@ -532,6 +588,7 @@ export type Database = {
           moderation_status?: string | null
           thumbnail_url?: string | null
           title?: string
+          topics?: string[] | null
           transcript?: string | null
           user_id?: string
           video_url?: string
@@ -588,6 +645,86 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_subject_progress: {
+        Row: {
+          avg_score: number | null
+          created_at: string
+          id: string
+          quizzes_attempted: number
+          quizzes_passed: number
+          subject: string
+          total_score: number
+          updated_at: string
+          user_id: string
+          videos_watched: number
+        }
+        Insert: {
+          avg_score?: number | null
+          created_at?: string
+          id?: string
+          quizzes_attempted?: number
+          quizzes_passed?: number
+          subject: string
+          total_score?: number
+          updated_at?: string
+          user_id: string
+          videos_watched?: number
+        }
+        Update: {
+          avg_score?: number | null
+          created_at?: string
+          id?: string
+          quizzes_attempted?: number
+          quizzes_passed?: number
+          subject?: string
+          total_score?: number
+          updated_at?: string
+          user_id?: string
+          videos_watched?: number
+        }
+        Relationships: []
+      }
+      user_video_progress: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          last_position: number
+          short_id: string
+          time_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          last_position?: number
+          short_id: string
+          time_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          last_position?: number
+          short_id?: string
+          time_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_video_progress_short_id_fkey"
+            columns: ["short_id"]
+            isOneToOne: false
+            referencedRelation: "shorts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       xp_transactions: {
         Row: {
@@ -671,7 +808,25 @@ export type Database = {
           xp_reward: number
         }[]
       }
+      get_starter_feed: {
+        Args: { p_limit?: number }
+        Returns: {
+          ai_summary: string
+          category: string
+          created_at: string
+          description: string
+          difficulty_level: string
+          id: string
+          likes_count: number
+          thumbnail_url: string
+          title: string
+          topics: string[]
+          video_url: string
+          views_count: number
+        }[]
+      }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      is_new_user: { Args: { p_user_id: string }; Returns: boolean }
       search_users_by_username: {
         Args: { search_query: string }
         Returns: {

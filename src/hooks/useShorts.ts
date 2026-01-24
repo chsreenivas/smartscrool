@@ -15,9 +15,17 @@ export interface Short {
   is_approved: boolean;
   created_at: string;
   isLiked?: boolean;
+  difficulty_level?: string;
+  ai_summary?: string | null;
+  topics?: string[];
 }
 
-export const useShorts = (category?: string, searchQuery?: string) => {
+export const useShorts = (
+  category?: string, 
+  searchQuery?: string,
+  difficulty?: string | null,
+  sortBy: 'popular' | 'newest' | 'relevant' = 'popular'
+) => {
   const { user } = useAuth();
   const [shorts, setShorts] = useState<Short[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,16 +35,33 @@ export const useShorts = (category?: string, searchQuery?: string) => {
     
     let query = supabase
       .from('shorts')
-      .select('*')
-      .eq('is_approved', true)
-      .order('created_at', { ascending: false });
+      .select('id, user_id, title, description, video_url, thumbnail_url, category, likes_count, views_count, is_approved, created_at, difficulty_level, ai_summary, topics')
+      .eq('is_approved', true);
 
     if (category && category !== 'All') {
       query = query.eq('category', category);
     }
 
+    if (difficulty) {
+      query = query.eq('difficulty_level', difficulty);
+    }
+
     if (searchQuery) {
       query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+    }
+
+    // Apply sorting
+    switch (sortBy) {
+      case 'popular':
+        query = query.order('views_count', { ascending: false });
+        break;
+      case 'newest':
+        query = query.order('created_at', { ascending: false });
+        break;
+      case 'relevant':
+        // For now, sort by a combination - could be enhanced with user preferences
+        query = query.order('views_count', { ascending: false }).order('created_at', { ascending: false });
+        break;
     }
 
     const { data, error } = await query;
@@ -120,7 +145,7 @@ export const useShorts = (category?: string, searchQuery?: string) => {
 
   useEffect(() => {
     fetchShorts();
-  }, [category, searchQuery, user]);
+  }, [category, searchQuery, difficulty, sortBy, user]);
 
   return { shorts, loading, toggleLike, recordView, refetch: fetchShorts };
 };
