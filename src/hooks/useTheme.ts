@@ -9,7 +9,7 @@ export const useTheme = () => {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('light', 'dark', 'neon');
+    root.classList.remove('light', 'dark', 'neon', 'safari');
     root.classList.add(theme);
     localStorage.setItem('eduScroll-theme', theme);
   }, [theme]);

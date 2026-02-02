@@ -17,22 +17,31 @@ interface Video {
 
 interface CreatorVideoGridProps {
   videos: Video[];
+  layout?: 'grid' | 'carousel';
 }
 
-export const CreatorVideoGrid = ({ videos }: CreatorVideoGridProps) => {
+export const CreatorVideoGrid = ({ videos, layout = 'grid' }: CreatorVideoGridProps) => {
   const navigate = useNavigate();
 
+  const containerClass = layout === 'carousel' 
+    ? 'safari-carousel' 
+    : 'grid grid-cols-2 gap-3';
+
+  const itemClass = layout === 'carousel'
+    ? 'w-36 flex-shrink-0'
+    : '';
+
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className={containerClass}>
       {videos.map((video, index) => (
         <motion.button
           key={video.id}
           onClick={() => navigate(`/feed?video=${video.id}`)}
-          className="relative aspect-[9/16] rounded-xl overflow-hidden bg-muted group"
+          className={`relative aspect-[9/16] rounded-xl overflow-hidden bg-muted group hover-lift hover-glow ${itemClass}`}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: index * 0.05 }}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.05, y: -4 }}
           whileTap={{ scale: 0.98 }}
         >
           {/* Thumbnail or Video Preview */}
