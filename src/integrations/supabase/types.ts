@@ -119,6 +119,27 @@ export type Database = {
         }
         Relationships: []
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -341,6 +362,7 @@ export type Database = {
         Row: {
           accessibility_settings: Json | null
           avatar_url: string | null
+          bio: string | null
           created_at: string
           daily_goal_target: number | null
           id: string
@@ -356,6 +378,7 @@ export type Database = {
         Insert: {
           accessibility_settings?: Json | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           daily_goal_target?: number | null
           id: string
@@ -371,6 +394,7 @@ export type Database = {
         Update: {
           accessibility_settings?: Json | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           daily_goal_target?: number | null
           id?: string
@@ -544,6 +568,7 @@ export type Database = {
           moderated_at: string | null
           moderation_result: string | null
           moderation_status: string | null
+          subtopic: string | null
           thumbnail_url: string | null
           title: string
           topics: string[] | null
@@ -565,6 +590,7 @@ export type Database = {
           moderated_at?: string | null
           moderation_result?: string | null
           moderation_status?: string | null
+          subtopic?: string | null
           thumbnail_url?: string | null
           title: string
           topics?: string[] | null
@@ -586,6 +612,7 @@ export type Database = {
           moderated_at?: string | null
           moderation_result?: string | null
           moderation_status?: string | null
+          subtopic?: string | null
           thumbnail_url?: string | null
           title?: string
           topics?: string[] | null
@@ -593,6 +620,36 @@ export type Database = {
           user_id?: string
           video_url?: string
           views_count?: number
+        }
+        Relationships: []
+      }
+      topic_quiz_progress: {
+        Row: {
+          created_at: string
+          id: string
+          last_quiz_at: string | null
+          topic: string
+          updated_at: string
+          user_id: string
+          videos_watched: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_quiz_at?: string | null
+          topic: string
+          updated_at?: string
+          user_id: string
+          videos_watched?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_quiz_at?: string | null
+          topic?: string
+          updated_at?: string
+          user_id?: string
+          videos_watched?: number
         }
         Relationships: []
       }
@@ -797,6 +854,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_follower_count: { Args: { p_user_id: string }; Returns: number }
+      get_following_count: { Args: { p_user_id: string }; Returns: number }
       get_quiz_for_short: {
         Args: { p_short_id: string }
         Returns: {
@@ -825,8 +884,17 @@ export type Database = {
           views_count: number
         }[]
       }
+      get_user_video_count: { Args: { p_user_id: string }; Returns: number }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      is_following: {
+        Args: { p_follower_id: string; p_following_id: string }
+        Returns: boolean
+      }
       is_new_user: { Args: { p_user_id: string }; Returns: boolean }
+      record_topic_video_view: {
+        Args: { p_topic: string; p_user_id: string }
+        Returns: Json
+      }
       search_users_by_username: {
         Args: { search_query: string }
         Returns: {

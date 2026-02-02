@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, User, Upload, Flame, Zap, X, Brain, Users, Target } from 'lucide-react';
+import { Search, User, Upload, Flame, Zap, X, Brain, Users, Target, BookOpen } from 'lucide-react';
 import { VideoShort } from '@/components/VideoShort';
 import { useShorts } from '@/hooks/useShorts';
 import { useProfile } from '@/hooks/useProfile';
@@ -203,6 +203,12 @@ const Feed = () => {
             className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center"
           >
             {showSearch ? <X className="w-5 h-5 text-foreground" /> : <Search className="w-5 h-5 text-foreground" />}
+          </button>
+          <button
+            onClick={() => navigate('/topics')}
+            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center"
+          >
+            <BookOpen className="w-5 h-5 text-foreground" />
           </button>
           <button
             onClick={() => navigate('/social')}

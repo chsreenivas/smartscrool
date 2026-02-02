@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { SubtopicSelect } from '@/components/SubtopicSelect';
 
-const categories = ['Science', 'History', 'Psychology', 'Money', 'Technology'];
+const categories = ['Math', 'Science', 'History', 'Psychology', 'ELA', 'Money', 'Technology', 'SAT Prep', 'Music', 'Philosophy'];
 
 const Upload = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Upload = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [subtopic, setSubtopic] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'transcribing' | 'moderating' | 'done'>('idle');
 
@@ -47,8 +49,8 @@ const Upload = () => {
       return;
     }
 
-    if (!selectedFile || !title || !category) {
-      toast.error('Please fill in all required fields');
+    if (!selectedFile || !title || !category || !subtopic) {
+      toast.error('Please fill in all required fields including subtopic');
       return;
     }
 
@@ -78,6 +80,7 @@ const Upload = () => {
           description,
           video_url: publicUrl,
           category,
+          subtopic,
           is_approved: false, // Pending AI moderation
           moderation_status: 'pending',
         })
@@ -238,10 +241,17 @@ const Upload = () => {
             </div>
           </div>
 
+          {/* Subtopic */}
+          <SubtopicSelect
+            category={category}
+            value={subtopic}
+            onChange={setSubtopic}
+          />
+
           <div className="pt-4">
             <Button
               onClick={handleUpload}
-              disabled={isUploading || !selectedFile || !title || !category}
+              disabled={isUploading || !selectedFile || !title || !category || !subtopic}
               className="w-full h-12 text-lg font-semibold bg-gradient-primary hover:opacity-90"
             >
               {isUploading ? (

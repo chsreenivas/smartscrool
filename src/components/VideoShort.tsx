@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Play, Volume2, VolumeX, HelpCircle, MessageSquare, Send, Flag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Heart, Play, Volume2, VolumeX, HelpCircle, MessageSquare, Send, Flag, User } from 'lucide-react';
 import { Short } from '@/hooks/useShorts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuizzes, Quiz } from '@/hooks/useQuizzes';
@@ -28,6 +29,7 @@ interface VideoShortProps {
 }
 
 export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStarterBadge }: VideoShortProps) => {
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -275,6 +277,18 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
 
       {/* Right Side Actions */}
       <div className="absolute right-4 bottom-32 flex flex-col items-center gap-5">
+        {/* Creator Profile */}
+        <motion.button
+          onClick={() => navigate(`/creator/${short.user_id}`)}
+          whileTap={{ scale: 0.9 }}
+          className="flex flex-col items-center"
+        >
+          <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-white">
+            <User className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <span className="text-white text-xs mt-1 font-medium">Creator</span>
+        </motion.button>
+
         {/* Like */}
         <motion.button
           onClick={handleLike}
