@@ -1,4 +1,4 @@
-export type Theme = 'light' | 'dark' | 'neon';
+export type Theme = 'light' | 'dark' | 'neon' | 'safari';
 
 export interface EducationalCard {
   id: number;

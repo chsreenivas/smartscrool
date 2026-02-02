@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sun, Moon, Sparkles } from 'lucide-react';
+import { Sun, Moon, Sparkles, Trees } from 'lucide-react';
 import { Theme } from '@/types/content';
 
 interface ThemePickerProps {
@@ -11,6 +11,7 @@ const themes: { id: Theme; icon: React.ReactNode; label: string }[] = [
   { id: 'light', icon: <Sun className="w-5 h-5" />, label: 'Light' },
   { id: 'dark', icon: <Moon className="w-5 h-5" />, label: 'Dark' },
   { id: 'neon', icon: <Sparkles className="w-5 h-5" />, label: 'Neon' },
+  { id: 'safari', icon: <Trees className="w-5 h-5" />, label: 'Safari' },
 ];
 
 export const ThemePicker = ({ currentTheme, onThemeChange }: ThemePickerProps) => {

@@ -82,10 +82,11 @@ export const AchievementsModal = ({ isOpen, onClose }: AchievementsModalProps) =
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.03 }}
-                        className={`relative p-4 rounded-xl border transition-all ${
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        className={`relative p-4 rounded-xl border cursor-pointer hover-lift hover-glow ${
                           isEarned 
                             ? 'bg-gradient-to-br from-primary/20 to-accent/20 border-primary/50' 
-                            : 'bg-card border-border opacity-60'
+                            : 'bg-card border-border opacity-60 hover:opacity-80'
                         }`}
                       >
                         {/* Status Icon */}

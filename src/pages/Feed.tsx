@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, User, Upload, Flame, Zap, X, Brain, Users, Target, BookOpen } from 'lucide-react';
+import { Search, User, Upload, Flame, Zap, X, Brain, Users, Target, BookOpen, Sparkles } from 'lucide-react';
 import { VideoShort } from '@/components/VideoShort';
 import { useShorts } from '@/hooks/useShorts';
 import { useProfile } from '@/hooks/useProfile';
@@ -13,6 +13,7 @@ import { QuizCheckpointModal } from '@/components/QuizCheckpointModal';
 import { StarterFeedBanner } from '@/components/StarterFeedBanner';
 import { DailyGoalCard } from '@/components/DailyGoalCard';
 import { SearchFilters } from '@/components/SearchFilters';
+import { TopicRecommendations } from '@/components/TopicRecommendations';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -27,6 +28,7 @@ const Feed = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
+  const [showRecommendations, setShowRecommendations] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'relevant'>('popular');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -193,38 +195,56 @@ const Feed = () => {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowGoals(!showGoals)}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center"
+            onClick={() => {
+              setShowRecommendations(!showRecommendations);
+              setShowGoals(false);
+              setShowSearch(false);
+            }}
+            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
+          >
+            <Sparkles className={`w-5 h-5 ${showRecommendations ? 'text-primary' : 'text-foreground'}`} />
+          </button>
+          <button
+            onClick={() => {
+              setShowGoals(!showGoals);
+              setShowRecommendations(false);
+              setShowSearch(false);
+            }}
+            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <Target className={`w-5 h-5 ${showGoals ? 'text-primary' : 'text-foreground'}`} />
           </button>
           <button
-            onClick={() => setShowSearch(!showSearch)}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center"
+            onClick={() => {
+              setShowSearch(!showSearch);
+              setShowGoals(false);
+              setShowRecommendations(false);
+            }}
+            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             {showSearch ? <X className="w-5 h-5 text-foreground" /> : <Search className="w-5 h-5 text-foreground" />}
           </button>
           <button
             onClick={() => navigate('/topics')}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <BookOpen className="w-5 h-5 text-foreground" />
           </button>
           <button
             onClick={() => navigate('/social')}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <Users className="w-5 h-5 text-foreground" />
           </button>
           <button
             onClick={() => navigate('/upload')}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <Upload className="w-5 h-5 text-foreground" />
           </button>
           <button
             onClick={() => navigate('/profile')}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <User className="w-5 h-5 text-foreground" />
           </button>
@@ -264,6 +284,20 @@ const Feed = () => {
         )}
       </AnimatePresence>
 
+      {/* AI Topic Recommendations Dropdown */}
+      <AnimatePresence>
+        {showRecommendations && (
+          <motion.div
+            className="fixed top-16 left-4 right-4 z-40"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <TopicRecommendations />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Search Bar */}
       {showSearch && (
         <motion.div
@@ -288,7 +322,7 @@ const Feed = () => {
 
       {/* Category Pills */}
       <motion.div
-        className={`fixed ${showSearch ? 'top-36' : showGoals && goals.length > 0 ? 'top-44' : 'top-16'} left-0 right-0 z-40 px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar transition-all duration-300`}
+        className={`fixed ${showSearch ? 'top-36' : (showGoals && goals.length > 0) || showRecommendations ? 'top-44' : 'top-16'} left-0 right-0 z-40 px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar transition-all duration-300`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
