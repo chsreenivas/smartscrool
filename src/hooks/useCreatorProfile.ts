@@ -7,6 +7,7 @@ interface CreatorProfile {
   id: string;
   username: string | null;
   avatar_url: string | null;
+  banner_url: string | null;
   bio: string | null;
   xp: number;
   streak: number;
@@ -42,10 +43,10 @@ export const useCreatorProfile = (creatorId: string) => {
     }
 
     try {
-      // Fetch profile - need to handle RLS
+      // Fetch profile including banner_url
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url, bio, xp, streak')
+        .select('id, username, avatar_url, banner_url, bio, xp, streak')
         .eq('id', creatorId)
         .single();
 
@@ -109,7 +110,6 @@ export const useCreatorProfile = (creatorId: string) => {
 
     try {
       if (isFollowing) {
-        // Unfollow
         await supabase
           .from('follows')
           .delete()
@@ -120,7 +120,6 @@ export const useCreatorProfile = (creatorId: string) => {
         setFollowerCount(prev => Math.max(0, prev - 1));
         toast.success('Unfollowed');
       } else {
-        // Follow
         await supabase
           .from('follows')
           .insert({

@@ -362,6 +362,7 @@ export type Database = {
         Row: {
           accessibility_settings: Json | null
           avatar_url: string | null
+          banner_url: string | null
           bio: string | null
           created_at: string
           daily_goal_target: number | null
@@ -378,6 +379,7 @@ export type Database = {
         Insert: {
           accessibility_settings?: Json | null
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string
           daily_goal_target?: number | null
@@ -394,6 +396,7 @@ export type Database = {
         Update: {
           accessibility_settings?: Json | null
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string
           daily_goal_target?: number | null

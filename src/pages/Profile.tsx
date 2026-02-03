@@ -9,12 +9,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useCreatorProfile } from '@/hooks/useCreatorProfile';
 import { CreatorVideoGrid } from '@/components/CreatorVideoGrid';
+import { ProfileImageUpload } from '@/components/ProfileImageUpload';
+import { BannerImageUpload } from '@/components/BannerImageUpload';
 import { toast } from 'sonner';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { profile, loading, updateUsername, updateBio } = useProfile();
+  const { profile, loading, updateUsername, updateBio, updateAvatar, updateBanner } = useProfile();
   const { videos, followerCount, followingCount, videoCount } = useCreatorProfile(user?.id || '');
   const [isEditing, setIsEditing] = useState(false);
   const [editUsername, setEditUsername] = useState('');
@@ -63,50 +65,68 @@ const Profile = () => {
         </button>
       </header>
 
-      <main className="pt-20 pb-8 px-4 max-w-md mx-auto">
-        {/* Avatar & Username */}
+      {/* Banner - below fixed header */}
+      <div className="pt-14">
+        {user && (
+          <BannerImageUpload
+            userId={user.id}
+            currentBannerUrl={profile?.banner_url || null}
+            onUploadComplete={updateBanner}
+            editable={true}
+          />
+        )}
+      </div>
+
+      <main className="pb-8 px-4 max-w-md mx-auto -mt-12 relative z-10">
+        {/* Avatar & Username - overlapping banner */}
         <motion.div
           className="flex flex-col items-center mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center mb-4 ring-4 ring-background">
-            <span className="text-4xl font-bold text-primary-foreground">
-              {profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
-            </span>
-          </div>
-          
-          {isEditing ? (
-            <div className="w-full space-y-3 mb-4">
-              <Input
-                placeholder="Username"
-                value={editUsername}
-                onChange={(e) => setEditUsername(e.target.value)}
-                className="text-center"
-              />
-              <Textarea
-                placeholder="Add a bio..."
-                value={editBio}
-                onChange={(e) => setEditBio(e.target.value)}
-                rows={2}
-                className="text-center"
-              />
-              <Button onClick={handleSaveProfile} className="w-full">
-                Save Profile
-              </Button>
-            </div>
-          ) : (
-            <>
-              <h2 className="text-2xl font-bold">{profile?.username || 'User'}</h2>
-              <p className="text-muted-foreground text-sm">{user?.email}</p>
-              {profile?.bio && (
-                <p className="text-muted-foreground text-center mt-2 max-w-xs">{profile.bio}</p>
-              )}
-            </>
+          {user && (
+            <ProfileImageUpload
+              userId={user.id}
+              currentImageUrl={profile?.avatar_url || null}
+              onUploadComplete={updateAvatar}
+              fallbackLetter={profile?.username?.[0] || user?.email?.[0] || '?'}
+              size="lg"
+            />
           )}
+          
+          <div className="mt-4 w-full">
+            {isEditing ? (
+              <div className="w-full space-y-3 mb-4">
+                <Input
+                  placeholder="Username"
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
+                  className="text-center"
+                />
+                <Textarea
+                  placeholder="Add a bio..."
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  rows={2}
+                  className="text-center"
+                />
+                <Button onClick={handleSaveProfile} className="w-full">
+                  Save Profile
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <h2 className="text-2xl font-bold">{profile?.username || 'User'}</h2>
+                <p className="text-muted-foreground text-sm">{user?.email}</p>
+                {profile?.bio && (
+                  <p className="text-muted-foreground text-center mt-2 max-w-xs mx-auto">{profile.bio}</p>
+                )}
+              </div>
+            )}
+          </div>
         </motion.div>
 
-        {/* Stats Grid - Updated with followers */}
+        {/* Stats Grid */}
         <motion.div
           className="grid grid-cols-4 gap-2 mb-6"
           initial={{ opacity: 0, y: 20 }}
