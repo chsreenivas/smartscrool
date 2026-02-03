@@ -445,13 +445,6 @@ export type Database = {
             referencedRelation: "quizzes"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "quiz_attempts_quiz_id_fkey"
-            columns: ["quiz_id"]
-            isOneToOne: false
-            referencedRelation: "quizzes_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       quizzes: {
@@ -812,60 +805,7 @@ export type Database = {
       }
     }
     Views: {
-      profiles_public: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          id: string | null
-          streak: number | null
-          username: string | null
-          xp: number | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          id?: string | null
-          streak?: number | null
-          username?: string | null
-          xp?: number | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          id?: string | null
-          streak?: number | null
-          username?: string | null
-          xp?: number | null
-        }
-        Relationships: []
-      }
-      quizzes_public: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          options: Json | null
-          question: string | null
-          short_id: string | null
-          xp_reward: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          options?: Json | null
-          question?: string | null
-          short_id?: string | null
-          xp_reward?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          options?: Json | null
-          question?: string | null
-          short_id?: string | null
-          xp_reward?: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       are_friends: {
@@ -883,8 +823,41 @@ export type Database = {
       }
       get_follower_count: { Args: { p_user_id: string }; Returns: number }
       get_following_count: { Args: { p_user_id: string }; Returns: number }
+      get_public_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_url: string
+          bio: string
+          id: string
+          streak: number
+          username: string
+          xp: number
+        }[]
+      }
+      get_public_profiles: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          avatar_url: string
+          bio: string
+          id: string
+          streak: number
+          username: string
+          xp: number
+        }[]
+      }
       get_quiz_for_short: {
         Args: { p_short_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          options: Json
+          question: string
+          short_id: string
+          xp_reward: number
+        }[]
+      }
+      get_quiz_public: {
+        Args: { p_quiz_id: string }
         Returns: {
           created_at: string
           id: string

@@ -57,12 +57,11 @@ export const useFriendships = () => {
           ? friendship.addressee_id 
           : friendship.requester_id;
 
-        // Use the profiles_public view to only access public profile fields
-        const { data: profile } = await (supabase
-          .from('profiles_public' as any)
-          .select('id, username, avatar_url')
-          .eq('id', friendId)
-          .single() as any);
+        // Use secure RPC function to get public profile data
+        const { data: profileData } = await (supabase as any)
+          .rpc('get_public_profile', { p_user_id: friendId });
+        
+        const profile = profileData?.[0] || null;
 
         const enrichedFriendship: Friendship = {
           id: friendship.id,
