@@ -812,6 +812,33 @@ export type Database = {
       }
     }
     Views: {
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          id: string | null
+          streak: number | null
+          username: string | null
+          xp: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          id?: string | null
+          streak?: number | null
+          username?: string | null
+          xp?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          id?: string | null
+          streak?: number | null
+          username?: string | null
+          xp?: number | null
+        }
+        Relationships: []
+      }
       quizzes_public: {
         Row: {
           created_at: string | null
