@@ -6,6 +6,7 @@ export interface Profile {
   id: string;
   username: string | null;
   avatar_url: string | null;
+  banner_url: string | null;
   bio: string | null;
   xp: number;
   streak: number;
@@ -78,6 +79,19 @@ export const useProfile = () => {
     }
   };
 
+  const updateBanner = async (banner_url: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ banner_url })
+      .eq('id', user.id);
+
+    if (!error) {
+      setProfile(prev => prev ? { ...prev, banner_url } : null);
+    }
+  };
+
   const updateBio = async (bio: string) => {
     if (!user) return;
 
@@ -92,7 +106,6 @@ export const useProfile = () => {
   };
 
   // Use secure server-side function to award XP
-  // This prevents client-side XP manipulation
   const addXP = async (amount: number, source: 'view' | 'quiz' | 'achievement' | 'streak' = 'view', referenceId?: string) => {
     if (!user || !profile) return;
 
@@ -109,7 +122,6 @@ export const useProfile = () => {
         return;
       }
 
-      // Refetch profile to get updated values
       await fetchProfile();
     } catch (error) {
       console.error('Error in addXP:', error);
@@ -120,5 +132,15 @@ export const useProfile = () => {
     fetchProfile();
   }, [user]);
 
-  return { profile, loading, updateInterests, updateUsername, updateAvatar, updateBio, addXP, refetch: fetchProfile };
+  return { 
+    profile, 
+    loading, 
+    updateInterests, 
+    updateUsername, 
+    updateAvatar, 
+    updateBanner,
+    updateBio, 
+    addXP, 
+    refetch: fetchProfile 
+  };
 };

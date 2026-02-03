@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Video, Users, UserPlus, UserMinus, Loader2 } from 'lucide-react';
+import { ArrowLeft, Video, UserPlus, UserMinus, Loader2, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreatorProfile } from '@/hooks/useCreatorProfile';
@@ -67,7 +66,24 @@ const CreatorProfile = () => {
         </h1>
       </header>
 
-      <main className="pt-20 pb-8 px-4 max-w-lg mx-auto">
+      {/* Banner */}
+      <div className="pt-14">
+        <div className="relative w-full h-32 sm:h-40 md:h-48 overflow-hidden bg-gradient-to-br from-primary/20 to-secondary">
+          {profile.banner_url ? (
+            <img
+              src={profile.banner_url}
+              alt="Profile banner"
+              className="w-full h-full object-cover object-center"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <ImageIcon className="w-12 h-12 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <main className="pb-8 px-4 max-w-lg mx-auto -mt-12 relative z-10">
         {/* Profile Header */}
         <motion.div
           className="flex flex-col items-center mb-6"
@@ -75,12 +91,12 @@ const CreatorProfile = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           {/* Avatar */}
-          <div className="w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center mb-4 ring-4 ring-background">
+          <div className="w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center ring-4 ring-background overflow-hidden">
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.username || 'Creator'}
-                className="w-full h-full rounded-full object-cover"
+                className="w-full h-full object-cover"
               />
             ) : (
               <span className="text-4xl font-bold text-primary-foreground">
@@ -90,7 +106,7 @@ const CreatorProfile = () => {
           </div>
 
           {/* Username */}
-          <h2 className="text-2xl font-bold mb-1">{profile.username || 'Creator'}</h2>
+          <h2 className="text-2xl font-bold mb-1 mt-4">{profile.username || 'Creator'}</h2>
           
           {/* Bio */}
           {profile.bio && (
