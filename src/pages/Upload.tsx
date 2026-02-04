@@ -129,6 +129,45 @@ const Upload = () => {
     }
   };
 
+  const createDatabaseRecord = async (publicUrl: string, retryCount = 0): Promise<boolean> => {
+    const maxRetries = 3;
+    
+    try {
+      const { error: insertError } = await supabase
+        .from('shorts')
+        .insert({
+          user_id: user!.id,
+          title,
+          description,
+          video_url: publicUrl,
+          category,
+          subtopic,
+          is_approved: true,
+          is_educational: true,
+          moderation_status: 'approved',
+          created_at: new Date().toISOString(),
+        });
+
+      if (insertError) {
+        if (retryCount < maxRetries) {
+          console.log(`DB write failed, retrying (${retryCount + 1}/${maxRetries})...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+          return createDatabaseRecord(publicUrl, retryCount + 1);
+        }
+        throw insertError;
+      }
+      
+      return true;
+    } catch (error) {
+      if (retryCount < maxRetries) {
+        console.log(`DB write error, retrying (${retryCount + 1}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+        return createDatabaseRecord(publicUrl, retryCount + 1);
+      }
+      throw error;
+    }
+  };
+
   const handleUpload = async () => {
     if (!user) {
       toast.error('Please sign in to upload');
@@ -147,8 +186,10 @@ const Upload = () => {
 
     setIsUploading(true);
 
+    let publicUrl: string | null = null;
+
     try {
-      // Upload video to storage
+      // STEP 1: Upload video to PUBLIC storage bucket
       const fileName = `${user.id}/${Date.now()}_${selectedFile.name}`;
       const { error: uploadError } = await supabase.storage
         .from('videos')
@@ -156,33 +197,35 @@ const Upload = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // STEP 2: Generate PUBLIC URL immediately after upload
+      const { data: urlData } = supabase.storage
         .from('videos')
         .getPublicUrl(fileName);
+      
+      publicUrl = urlData.publicUrl;
 
-      // Create short record - immediately approved and published
-      const { error: insertError } = await supabase
-        .from('shorts')
-        .insert({
-          user_id: user.id,
-          title,
-          description,
-          video_url: publicUrl,
-          category,
-          subtopic,
-          is_approved: true, // Immediately approved
-          is_educational: true, // Assumed educational
-          moderation_status: 'approved',
-        });
+      if (!publicUrl) {
+        throw new Error('Failed to generate public URL for video');
+      }
 
-      if (insertError) throw insertError;
+      // STEP 3: Create database record with retry logic
+      // CRITICAL: This MUST succeed before showing success to user
+      // NEVER delete the file if this fails - just retry
+      await createDatabaseRecord(publicUrl);
 
+      // STEP 4: Success - navigate to feed
       toast.success('Video published successfully! 🎉');
       navigate('/feed');
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload video');
+      
+      // If we have a public URL but DB write failed after retries,
+      // inform user but DO NOT delete the uploaded file
+      if (publicUrl) {
+        toast.error('Video uploaded but failed to publish. Please try again or contact support.');
+      } else {
+        toast.error(error.message || 'Failed to upload video');
+      }
     }
 
     setIsUploading(false);
