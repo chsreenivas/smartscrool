@@ -165,25 +165,24 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
 
   return (
     <div className="relative w-full h-full bg-background">
-      {/* Video */}
+      {/* Simple Video Player - YouTube style */}
       <video
         ref={videoRef}
         src={short.video_url}
-        className="w-full h-full object-cover"
+        controls
+        playsInline
         loop
         muted={isMuted}
-        playsInline
+        className="w-full h-full object-cover"
         onClick={togglePlay}
-        poster={short.thumbnail_url || undefined}
       />
 
       {/* Play/Pause Overlay */}
       {!isPlaying && (
         <motion.div
-          className="absolute inset-0 flex items-center justify-center bg-black/30"
+          className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          onClick={togglePlay}
         >
           <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <Play className="w-10 h-10 text-white ml-1" />
@@ -209,16 +208,9 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
       </AnimatePresence>
 
       {/* Top Badges */}
-      <div className="absolute top-20 left-4 right-16 flex flex-wrap gap-2">
-        {/* Popularity Badge */}
+      <div className="absolute top-20 left-4 right-16 flex flex-wrap gap-2 pointer-events-none">
         <PopularityBadge viewCount={short.views_count} size="sm" />
-        
-        {/* Difficulty Badge */}
-        {difficultyLevel && (
-          <DifficultyBadge level={difficultyLevel} size="sm" />
-        )}
-        
-        {/* Starter Badge */}
+        {difficultyLevel && <DifficultyBadge level={difficultyLevel} size="sm" />}
         {showStarterBadge && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -234,12 +226,11 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
       <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
 
       {/* Content Overlay */}
-      <div className="absolute bottom-0 left-0 right-16 p-4 pb-24">
+      <div className="absolute bottom-0 left-0 right-16 p-4 pb-24 pointer-events-none">
         <h2 className="text-xl font-bold text-white mb-2 drop-shadow-lg">
           {short.title}
         </h2>
         
-        {/* AI Summary */}
         {short.ai_summary && (
           <p className="text-white/80 text-sm mb-2 drop-shadow-lg italic">
             💡 {short.ai_summary}
@@ -257,7 +248,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
             {short.category}
           </span>
           
-          {/* Topic Tags */}
           {short.topics && short.topics.slice(0, 2).map((topic, i) => (
             <span 
               key={i}
@@ -335,7 +325,7 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
           <span className="text-white text-xs mt-1 font-medium">Tutor</span>
         </motion.button>
 
-        {/* Share (Private) */}
+        {/* Share */}
         <motion.button
           onClick={handleShare}
           whileTap={{ scale: 0.9 }}
@@ -354,11 +344,7 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
           className="flex flex-col items-center"
         >
           <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            {isMuted ? (
-              <VolumeX className="w-6 h-6 text-white" />
-            ) : (
-              <Volume2 className="w-6 h-6 text-white" />
-            )}
+            {isMuted ? <VolumeX className="w-6 h-6 text-white" /> : <Volume2 className="w-6 h-6 text-white" />}
           </div>
           <span className="text-white text-xs mt-1 font-medium">{isMuted ? 'Unmute' : 'Mute'}</span>
         </motion.button>
@@ -378,14 +364,14 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
 
       {/* Swipe hint */}
       <motion.div
-        className="absolute bottom-6 left-1/2 -translate-x-1/2"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none"
         animate={{ y: [0, -8, 0] }}
         transition={{ duration: 1.5, repeat: Infinity }}
       >
         <span className="text-white/60 text-sm">Swipe up for more</span>
       </motion.div>
 
-      {/* Quiz Overlay */}
+      {/* Overlays */}
       {quiz && (
         <QuizOverlay
           isOpen={showQuiz}
@@ -395,7 +381,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
         />
       )}
 
-      {/* Share Panel */}
       <SharePanel
         isOpen={showShare}
         onClose={() => setShowShare(false)}
@@ -403,7 +388,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
         shortTitle={short.title}
       />
 
-      {/* AI Tutor Chat */}
       <AITutorChat
         isOpen={showTutor}
         onClose={() => setShowTutor(false)}
@@ -412,7 +396,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
         category={short.category}
       />
 
-      {/* Report Modal */}
       <ReportModal
         isOpen={showReport}
         onClose={() => setShowReport(false)}
