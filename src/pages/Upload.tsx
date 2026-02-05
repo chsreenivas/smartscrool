@@ -23,6 +23,7 @@ const Upload = () => {
   const [category, setCategory] = useState('');
   const [subtopic, setSubtopic] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const uploadInProgress = useRef(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,6 +40,11 @@ const Upload = () => {
   };
 
   const handleUpload = async () => {
+    // Prevent double uploads
+    if (uploadInProgress.current || isUploading) {
+      return;
+    }
+
     if (!user) {
       toast.error('Please sign in to upload');
       return;
@@ -50,48 +56,68 @@ const Upload = () => {
     }
 
     setIsUploading(true);
+    uploadInProgress.current = true;
+
+    const fileName = `${user.id}/${Date.now()}_${selectedFile.name}`;
+    let uploadedFilePath: string | null = null;
 
     try {
-      // STEP 1: Upload to PUBLIC storage bucket
-      const fileName = `${user.id}/${Date.now()}_${selectedFile.name}`;
-      const { error: uploadError } = await supabase.storage
+      // STEP 1: Upload file to storage bucket
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('videos')
         .upload(fileName, selectedFile);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        throw new Error(`Storage upload failed: ${uploadError.message}`);
+      }
 
-      // STEP 2: Get public URL immediately
+      uploadedFilePath = fileName;
+
+      // STEP 2: Get public URL and verify it exists
       const { data: urlData } = supabase.storage
         .from('videos')
         .getPublicUrl(fileName);
 
-      const publicUrl = urlData.publicUrl;
+      const videoUrl = urlData.publicUrl;
 
-      // STEP 3: Save to database - minimal fields only
+      if (!videoUrl) {
+        throw new Error('Failed to generate public URL');
+      }
+
+      // STEP 3: INSERT into database - this MUST succeed
       const { error: dbError } = await supabase
         .from('shorts')
         .insert({
           user_id: user.id,
           title,
           description,
-          video_url: publicUrl,
+          video_url: videoUrl,
           category,
           subtopic,
-          is_approved: true,
-          created_at: new Date().toISOString(),
+          is_approved: true
         });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        // FAILSAFE: Delete the uploaded file if DB insert fails
+        if (uploadedFilePath) {
+          await supabase.storage
+            .from('videos')
+            .remove([uploadedFilePath]);
+        }
+        throw new Error(`Database insert failed: ${dbError.message}`);
+      }
 
-      // STEP 4: Done - navigate
+      // STEP 4: SUCCESS - only now show success message
       toast.success('Video uploaded! 🎉');
       navigate('/feed');
+
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Upload failed');
+      toast.error(error.message || 'Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+      uploadInProgress.current = false;
     }
-
-    setIsUploading(false);
   };
 
   const clearFile = () => {
@@ -209,7 +235,7 @@ const Upload = () => {
           <div className="pt-4">
             <Button
               onClick={handleUpload}
-              disabled={isUploading || !isFormValid}
+              disabled={isUploading || !isFormValid || uploadInProgress.current}
               className="w-full h-12 text-lg font-semibold bg-gradient-primary hover:opacity-90"
             >
               {isUploading ? (

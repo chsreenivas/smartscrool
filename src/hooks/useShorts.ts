@@ -18,6 +18,7 @@ export interface Short {
   difficulty_level?: string;
   ai_summary?: string | null;
   topics?: string[];
+  subtopic?: string | null;
 }
 
 export const useShorts = (
@@ -33,11 +34,13 @@ export const useShorts = (
   const fetchShorts = async () => {
     setLoading(true);
     
+    // STEP 4 FIX: Simple query - read all approved videos
     let query = supabase
       .from('shorts')
-      .select('id, user_id, title, description, video_url, thumbnail_url, category, likes_count, views_count, is_approved, created_at, difficulty_level, ai_summary, topics')
+      .select('id, user_id, title, description, video_url, thumbnail_url, category, subtopic, likes_count, views_count, is_approved, created_at, difficulty_level, ai_summary, topics')
       .eq('is_approved', true);
 
+    // Filter by category/subject if specified
     if (category && category !== 'All') {
       query = query.eq('category', category);
     }
@@ -59,14 +62,18 @@ export const useShorts = (
         query = query.order('created_at', { ascending: false });
         break;
       case 'relevant':
-        // For now, sort by a combination - could be enhanced with user preferences
         query = query.order('views_count', { ascending: false }).order('created_at', { ascending: false });
         break;
+      default:
+        query = query.order('created_at', { ascending: false });
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.limit(100);
 
-    if (!error && data) {
+    if (error) {
+      console.error('Error fetching shorts:', error);
+      setShorts([]);
+    } else if (data) {
       // Check which shorts the user has liked
       if (user) {
         const { data: likes } = await supabase
