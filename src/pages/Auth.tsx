@@ -31,8 +31,9 @@ const Auth = () => {
   const { signUp, signIn, user, loading } = useAuth();
 
   useEffect(() => {
+    // Redirect logged-in users to home
     if (!loading && user) {
-      navigate('/interests');
+      navigate('/');
     }
   }, [user, loading, navigate]);
 
@@ -100,7 +101,7 @@ const Auth = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/welcome')}
       >
         <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center cursor-pointer">
           <Brain className="w-7 h-7 text-primary-foreground" />

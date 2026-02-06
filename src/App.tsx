@@ -4,7 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import QuizHub from "./pages/QuizHub";
+import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
 import Interests from "./pages/Interests";
 import Feed from "./pages/Feed";
@@ -28,18 +30,23 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<QuizHub />} />
+            {/* Public routes */}
+            <Route path="/welcome" element={<Welcome />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/interests" element={<Interests />} />
-            <Route path="/feed" element={<Feed />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/creator/:userId" element={<CreatorProfile />} />
-            <Route path="/social" element={<Social />} />
-            <Route path="/admin" element={<Admin />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/topics" element={<Topics />} />
-            <Route path="/topic/:topicSlug" element={<Topic />} />
+            
+            {/* Protected routes - require authentication */}
+            <Route path="/" element={<ProtectedRoute><QuizHub /></ProtectedRoute>} />
+            <Route path="/interests" element={<ProtectedRoute><Interests /></ProtectedRoute>} />
+            <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+            <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/creator/:userId" element={<ProtectedRoute><CreatorProfile /></ProtectedRoute>} />
+            <Route path="/social" element={<ProtectedRoute><Social /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+            <Route path="/topics" element={<ProtectedRoute><Topics /></ProtectedRoute>} />
+            <Route path="/topic/:topicSlug" element={<ProtectedRoute><Topic /></ProtectedRoute>} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

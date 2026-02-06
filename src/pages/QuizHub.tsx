@@ -47,7 +47,7 @@ const QuizHub = () => {
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button 
-            onClick={() => navigate('/')}
+            onClick={() => navigate(user ? '/' : '/welcome')}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
