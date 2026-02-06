@@ -267,16 +267,21 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
 
       {/* Right Side Actions */}
       <div className="absolute right-4 bottom-32 flex flex-col items-center gap-5">
-        {/* Creator Profile */}
+        {/* Creator Profile with Hover Effect */}
         <motion.button
           onClick={() => navigate(`/creator/${short.user_id}`)}
           whileTap={{ scale: 0.9 }}
-          className="flex flex-col items-center"
+          whileHover={{ scale: 1.1 }}
+          className="flex flex-col items-center group relative"
         >
-          <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-white">
+          <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-white group-hover:ring-primary group-hover:shadow-lg transition-all duration-200">
             <User className="w-6 h-6 text-primary-foreground" />
           </div>
-          <span className="text-white text-xs mt-1 font-medium">Creator</span>
+          <span className="text-white text-xs mt-1 font-medium group-hover:text-primary transition-colors">Creator</span>
+          {/* Tooltip */}
+          <div className="absolute -left-16 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-card text-foreground text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
+            View Profile
+          </div>
         </motion.button>
 
         {/* Like */}

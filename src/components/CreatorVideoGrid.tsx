@@ -37,11 +37,15 @@ export const CreatorVideoGrid = ({ videos, layout = 'grid' }: CreatorVideoGridPr
         <motion.button
           key={video.id}
           onClick={() => navigate(`/feed?video=${video.id}`)}
-          className={`relative aspect-[9/16] rounded-xl overflow-hidden bg-muted group hover-lift hover-glow ${itemClass}`}
+          className={`relative aspect-[9/16] rounded-xl overflow-hidden bg-muted group cursor-pointer ${itemClass}`}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: index * 0.05 }}
-          whileHover={{ scale: 1.05, y: -4 }}
+          whileHover={{ 
+            scale: 1.05, 
+            y: -4,
+            boxShadow: '0 10px 40px -10px hsl(var(--primary) / 0.3)'
+          }}
           whileTap={{ scale: 0.98 }}
         >
           {/* Thumbnail or Video Preview */}
