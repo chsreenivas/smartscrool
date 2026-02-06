@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Welcome from "./pages/Welcome";
+import QuizHub from "./pages/QuizHub";
 import Auth from "./pages/Auth";
 import Interests from "./pages/Interests";
 import Feed from "./pages/Feed";
@@ -28,7 +28,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Welcome />} />
+            <Route path="/" element={<QuizHub />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/interests" element={<Interests />} />
             <Route path="/feed" element={<Feed />} />
