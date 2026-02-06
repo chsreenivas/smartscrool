@@ -85,6 +85,7 @@ const Upload = () => {
       }
 
       // STEP 3: INSERT into database - this MUST succeed
+      // Videos require moderation before appearing in feeds
       const { error: dbError } = await supabase
         .from('shorts')
         .insert({
@@ -94,7 +95,7 @@ const Upload = () => {
           video_url: videoUrl,
           category,
           subtopic,
-          is_approved: true
+          is_approved: false // Requires moderation before going live
         });
 
       if (dbError) {
@@ -108,8 +109,8 @@ const Upload = () => {
       }
 
       // STEP 4: SUCCESS - only now show success message
-      toast.success('Video uploaded! 🎉');
-      navigate('/feed');
+      toast.success('Video uploaded! It will be reviewed before going live. 🎉');
+      navigate('/profile');
 
     } catch (error: any) {
       console.error('Upload error:', error);
