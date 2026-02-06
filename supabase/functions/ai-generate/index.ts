@@ -3,8 +3,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+// Rate limit: 10 requests per hour for ai-generate (expensive operation)
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_WINDOW_SECONDS = 3600;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -23,6 +27,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
@@ -41,9 +46,30 @@ serve(async (req) => {
     const userId = claimsData.claims.sub;
     console.log(`AI Generate request from user: ${userId}`);
 
+    // Check rate limit using service role client
+    const supabaseService = createClient(supabaseUrl, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: rateLimitAllowed, error: rateLimitError } = await supabaseService.rpc(
+      'check_rate_limit',
+      {
+        p_user_id: userId,
+        p_endpoint: 'ai-generate',
+        p_max_requests: RATE_LIMIT_MAX_REQUESTS,
+        p_window_seconds: RATE_LIMIT_WINDOW_SECONDS
+      }
+    );
+
+    if (rateLimitError) {
+      console.error('Rate limit check error:', rateLimitError);
+    } else if (!rateLimitAllowed) {
+      console.log(`Rate limit exceeded for user: ${userId}`);
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. You can generate up to 10 items per hour. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { type, shortId, transcript, title, description } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -183,9 +209,6 @@ Provide a summary, 3-5 key points, and 2-3 related topics to explore.`;
 
     const result = JSON.parse(toolCall.function.arguments);
     console.log(`Generated ${type}:`, result);
-
-    // Save to database using service role
-    const supabaseService = createClient(supabaseUrl, SUPABASE_SERVICE_ROLE_KEY);
 
     if (type === "quiz") {
       const { error: quizError } = await supabaseService
