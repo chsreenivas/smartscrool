@@ -10,8 +10,9 @@ const Welcome = () => {
   const { user, loading } = useAuth();
 
   useEffect(() => {
+    // If user is logged in, redirect to home (Quiz Hub)
     if (!loading && user) {
-      navigate('/feed');
+      navigate('/');
     }
   }, [user, loading, navigate]);
 

@@ -32,7 +32,7 @@ const Profile = () => {
   const handleSignOut = async () => {
     await signOut();
     toast.success('Signed out successfully');
-    navigate('/');
+    navigate('/welcome');
   };
 
   const handleSaveProfile = async () => {

@@ -49,11 +49,7 @@ const Feed = () => {
   // Determine which feed to show
   const displayShorts = isNewUser && starterShorts.length > 0 ? starterShorts : shorts;
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/');
-    }
-  }, [user, authLoading, navigate]);
+  // No manual redirect needed - ProtectedRoute handles auth
 
   // Mark user as not new after they've scrolled past starter feed
   useEffect(() => {

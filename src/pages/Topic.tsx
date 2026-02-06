@@ -91,11 +91,7 @@ const Topic = () => {
     completeCheckpoint 
   } = useTopicQuizCheckpoint(categoryName);
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/');
-    }
-  }, [user, authLoading, navigate]);
+  // No manual redirect needed - ProtectedRoute handles auth
 
   const scrollToIndex = (index: number) => {
     if (containerRef.current && index >= 0 && index < shorts.length) {
