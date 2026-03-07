@@ -24,7 +24,6 @@ const QuizHub = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Background decoration */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <motion.div
           className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-primary/10 blur-3xl"
@@ -38,7 +37,6 @@ const QuizHub = () => {
         />
       </div>
 
-      {/* Header */}
       <motion.header
         className="sticky top-0 z-50 px-4 py-4 bg-background/80 backdrop-blur-md border-b border-border/50"
         initial={{ y: -100 }}
@@ -47,13 +45,13 @@ const QuizHub = () => {
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button 
-            onClick={() => navigate(user ? '/' : '/welcome')}
+            onClick={() => navigate('/feed')}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
               <Brain className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="font-display font-bold text-xl text-foreground">SmartScroll</span>
+            <span className="font-display font-bold text-xl text-foreground">Smart Scroll</span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -82,9 +80,7 @@ const QuizHub = () => {
         </div>
       </motion.header>
 
-      {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Hero Section */}
         <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
@@ -102,7 +98,6 @@ const QuizHub = () => {
           </p>
         </motion.div>
 
-        {/* Quiz Topic Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {quizTopics.map((topic, index) => (
             <motion.button
@@ -115,23 +110,16 @@ const QuizHub = () => {
               whileHover={{ scale: 1.02, y: -4 }}
               whileTap={{ scale: 0.98 }}
             >
-              {/* Gradient Background on Hover */}
               <div className={`absolute inset-0 bg-gradient-to-br ${topic.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-              
-              {/* Icon */}
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${topic.color} flex items-center justify-center mb-4`}>
                 <topic.icon className="w-6 h-6 text-white" />
               </div>
-
-              {/* Content */}
               <h3 className="text-lg font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
                 {topic.name}
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
                 {topic.description}
               </p>
-
-              {/* Start Quiz Button */}
               <div className="flex items-center gap-2 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                 <span>Start Quiz</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -140,7 +128,6 @@ const QuizHub = () => {
           ))}
         </div>
 
-        {/* Bottom CTA */}
         <motion.div
           className="mt-12 text-center"
           initial={{ opacity: 0 }}

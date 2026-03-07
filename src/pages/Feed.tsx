@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, User, Upload, Flame, Zap, X, Brain, Users, Target, BookOpen, Sparkles } from 'lucide-react';
+import { Search, User, Upload, Flame, Zap, X, Brain, Users, Target, BookOpen, Sparkles, Trophy } from 'lucide-react';
 import { VideoShort } from '@/components/VideoShort';
 import { useShorts } from '@/hooks/useShorts';
 import { useProfile } from '@/hooks/useProfile';
@@ -14,6 +14,7 @@ import { StarterFeedBanner } from '@/components/StarterFeedBanner';
 import { DailyGoalCard } from '@/components/DailyGoalCard';
 import { SearchFilters } from '@/components/SearchFilters';
 import { TopicRecommendations } from '@/components/TopicRecommendations';
+import { AchievementsModal } from '@/components/AchievementsModal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -29,12 +30,13 @@ const Feed = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'relevant'>('popular');
+  const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'relevant'>('newest');
   const containerRef = useRef<HTMLDivElement>(null);
   const isScrolling = useRef(false);
 
-  const { shorts, loading, toggleLike, recordView } = useShorts(selectedCategory, searchQuery);
+  const { shorts, loading, toggleLike, recordView } = useShorts(selectedCategory, searchQuery, selectedDifficulty, sortBy);
   const { profile, addXP } = useProfile();
   const { isNewUser, starterShorts, loading: starterLoading, markAsNotNew } = useStarterFeed();
   const { goals, incrementProgress } = useDailyGoals();
@@ -46,12 +48,8 @@ const Feed = () => {
     completeCheckpoint 
   } = useQuizCheckpoint();
 
-  // Determine which feed to show
   const displayShorts = isNewUser && starterShorts.length > 0 ? starterShorts : shorts;
 
-  // No manual redirect needed - ProtectedRoute handles auth
-
-  // Mark user as not new after they've scrolled past starter feed
   useEffect(() => {
     if (isNewUser && currentIndex >= starterShorts.length - 1 && starterShorts.length > 0) {
       markAsNotNew();
@@ -164,15 +162,14 @@ const Feed = () => {
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Logo - Clickable to Quiz Hub */}
         <button 
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/feed')}
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
             <Brain className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-display font-bold text-foreground text-lg">SmartScroll</span>
+          <span className="font-display font-bold text-foreground text-lg">Smart Scroll</span>
         </button>
 
         {/* Stats */}
@@ -194,57 +191,39 @@ const Feed = () => {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => {
-              setShowRecommendations(!showRecommendations);
-              setShowGoals(false);
-              setShowSearch(false);
-            }}
+            onClick={() => { setShowAchievements(true); }}
+            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
+          >
+            <Trophy className="w-5 h-5 text-foreground" />
+          </button>
+          <button
+            onClick={() => { setShowRecommendations(!showRecommendations); setShowGoals(false); setShowSearch(false); }}
             className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <Sparkles className={`w-5 h-5 ${showRecommendations ? 'text-primary' : 'text-foreground'}`} />
           </button>
           <button
-            onClick={() => {
-              setShowGoals(!showGoals);
-              setShowRecommendations(false);
-              setShowSearch(false);
-            }}
+            onClick={() => { setShowGoals(!showGoals); setShowRecommendations(false); setShowSearch(false); }}
             className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <Target className={`w-5 h-5 ${showGoals ? 'text-primary' : 'text-foreground'}`} />
           </button>
           <button
-            onClick={() => {
-              setShowSearch(!showSearch);
-              setShowGoals(false);
-              setShowRecommendations(false);
-            }}
+            onClick={() => { setShowSearch(!showSearch); setShowGoals(false); setShowRecommendations(false); }}
             className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             {showSearch ? <X className="w-5 h-5 text-foreground" /> : <Search className="w-5 h-5 text-foreground" />}
           </button>
-          <button
-            onClick={() => navigate('/topics')}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
-          >
+          <button onClick={() => navigate('/')} className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
             <BookOpen className="w-5 h-5 text-foreground" />
           </button>
-          <button
-            onClick={() => navigate('/social')}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
-          >
+          <button onClick={() => navigate('/social')} className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
             <Users className="w-5 h-5 text-foreground" />
           </button>
-          <button
-            onClick={() => navigate('/upload')}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
-          >
+          <button onClick={() => navigate('/upload')} className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
             <Upload className="w-5 h-5 text-foreground" />
           </button>
-          <button
-            onClick={() => navigate('/profile')}
-            className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
-          >
+          <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
             <User className="w-5 h-5 text-foreground" />
           </button>
         </div>
@@ -258,24 +237,12 @@ const Feed = () => {
       {/* Daily Goals Dropdown */}
       <AnimatePresence>
         {showGoals && goals.length > 0 && (
-          <motion.div
-            className="fixed top-16 left-4 right-4 z-40 space-y-2"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-          >
+          <motion.div className="fixed top-16 left-4 right-4 z-40 space-y-2" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
             <div className="p-3 rounded-xl bg-card/90 backdrop-blur-md border border-border/50">
               <h3 className="text-sm font-semibold text-foreground mb-2">Today's Goals</h3>
               <div className="space-y-2">
                 {goals.map((goal) => (
-                  <DailyGoalCard
-                    key={goal.id}
-                    goalType={goal.goal_type}
-                    subject={goal.subject}
-                    target={goal.target}
-                    progress={goal.progress}
-                    completed={goal.completed}
-                  />
+                  <DailyGoalCard key={goal.id} goalType={goal.goal_type} subject={goal.subject} target={goal.target} progress={goal.progress} completed={goal.completed} />
                 ))}
               </div>
             </div>
@@ -286,12 +253,7 @@ const Feed = () => {
       {/* AI Topic Recommendations Dropdown */}
       <AnimatePresence>
         {showRecommendations && (
-          <motion.div
-            className="fixed top-16 left-4 right-4 z-40"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-          >
+          <motion.div className="fixed top-16 left-4 right-4 z-40" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
             <TopicRecommendations />
           </motion.div>
         )}
@@ -299,23 +261,14 @@ const Feed = () => {
 
       {/* Search Bar */}
       {showSearch && (
-        <motion.div
-          className="fixed top-16 left-0 right-0 z-40 px-4 py-2 space-y-2"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div className="fixed top-16 left-0 right-0 z-40 px-4 py-2 space-y-2" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
           <Input
             placeholder="Search educational shorts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-card/90 backdrop-blur-md border-border/50 text-foreground placeholder:text-muted-foreground"
           />
-          <SearchFilters
-            selectedDifficulty={selectedDifficulty}
-            onDifficultyChange={setSelectedDifficulty}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-          />
+          <SearchFilters selectedDifficulty={selectedDifficulty} onDifficultyChange={setSelectedDifficulty} sortBy={sortBy} onSortChange={setSortBy} />
         </motion.div>
       )}
 
@@ -331,9 +284,7 @@ const Feed = () => {
             key={category}
             onClick={() => setSelectedCategory(category)}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-              selectedCategory === category
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted/50 text-foreground backdrop-blur-sm hover:bg-muted'
+              selectedCategory === category ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-foreground backdrop-blur-sm hover:bg-muted'
             }`}
           >
             {category}
@@ -342,27 +293,19 @@ const Feed = () => {
       </motion.div>
 
       {/* Video Feed */}
-      <div
-        ref={containerRef}
-        className="h-screen overflow-hidden"
-      >
+      <div ref={containerRef} className="h-screen overflow-hidden">
         {displayShorts.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-foreground">
             <Brain className="w-16 h-16 mb-4 opacity-50" />
             <h2 className="text-xl font-bold mb-2">No shorts yet</h2>
             <p className="text-muted-foreground mb-4">Be the first to upload educational content!</p>
-            <Button onClick={() => navigate('/upload')} variant="outline">
-              Upload a Short
-            </Button>
+            <Button onClick={() => navigate('/upload')} variant="outline">Upload a Short</Button>
           </div>
         ) : (
           displayShorts.map((short, index) => (
             <div key={short.id} className="h-screen w-full flex-shrink-0">
               <VideoShort
-                short={{
-                  ...short,
-                  isLiked: 'isLiked' in short ? short.isLiked : false
-                }}
+                short={{ ...short, isLiked: 'isLiked' in short ? short.isLiked : false }}
                 isActive={index === currentIndex}
                 onLike={() => toggleLike(short.id)}
                 onView={() => handleView(short.id)}
@@ -381,9 +324,7 @@ const Feed = () => {
             <button
               key={index}
               onClick={() => scrollToIndex(index)}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${
-                index === currentIndex ? 'bg-primary h-4' : 'bg-muted-foreground/30'
-              }`}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${index === currentIndex ? 'bg-primary h-4' : 'bg-muted-foreground/30'}`}
             />
           ))}
         </div>
@@ -403,12 +344,10 @@ const Feed = () => {
       )}
 
       {/* Quiz Checkpoint Modal */}
-      <QuizCheckpointModal
-        isOpen={shouldShowQuiz}
-        quiz={checkpointQuiz}
-        onComplete={handleCheckpointComplete}
-        videosWatched={25}
-      />
+      <QuizCheckpointModal isOpen={shouldShowQuiz} quiz={checkpointQuiz} onComplete={handleCheckpointComplete} videosWatched={25} />
+
+      {/* Achievements Modal */}
+      <AchievementsModal isOpen={showAchievements} onClose={() => setShowAchievements(false)} />
     </div>
   );
 };
