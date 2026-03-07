@@ -31,7 +31,6 @@ const Auth = () => {
   const { signUp, signIn, user, loading } = useAuth();
 
   useEffect(() => {
-    // Redirect logged-in users to home
     if (!loading && user) {
       navigate('/');
     }
@@ -73,7 +72,7 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else {
-          toast.success('Account created! Let\'s pick your interests.');
+          toast.success("Account created! Let's pick your interests.");
           navigate('/interests');
         }
       }
@@ -86,7 +85,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-      {/* Background decoration */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <motion.div
           className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-primary/20 blur-3xl"
@@ -95,21 +93,19 @@ const Auth = () => {
         />
       </div>
 
-      {/* Logo */}
       <motion.div
-        className="flex items-center gap-2 mb-8"
+        className="flex items-center gap-2 mb-8 cursor-pointer"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         onClick={() => navigate('/welcome')}
       >
-        <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center cursor-pointer">
+        <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
           <Brain className="w-7 h-7 text-primary-foreground" />
         </div>
-        <span className="font-display text-2xl font-bold text-gradient-primary">BrainScroll</span>
+        <span className="font-display text-2xl font-bold text-gradient-primary">Smart Scroll</span>
       </motion.div>
 
-      {/* Form Card */}
       <motion.div
         className="w-full max-w-md bg-card rounded-2xl shadow-elevated p-8 border border-border/50"
         initial={{ opacity: 0, y: 20 }}
@@ -120,7 +116,7 @@ const Auth = () => {
           {isLogin ? 'Welcome Back' : 'Create Account'}
         </h1>
         <p className="text-muted-foreground text-center mb-8">
-          {isLogin ? 'Sign in to continue learning' : 'Start your learning journey'}
+          {isLogin ? "Don't lose your brain cells while scrolling." : 'Start your learning journey'}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
