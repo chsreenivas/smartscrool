@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-const categories = ['All', 'Math', 'Science', 'History', 'Psychology', 'Money', 'Technology', 'ELA', 'SAT Prep'];
+const categories = ['All', 'Math', 'Science', 'History', 'Psychology', 'Money', 'Technology', 'ELA', 'SAT Prep', 'Music', 'Philosophy'];
 
 const Feed = () => {
   const navigate = useNavigate();
