@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Play, Volume2, VolumeX, HelpCircle, MessageSquare, Send, Flag, User, Bookmark, MessageCircle, Subtitles } from 'lucide-react';
+import { Heart, Play, Volume2, VolumeX, HelpCircle, MessageSquare, Send, Flag, User, Bookmark, Subtitles } from 'lucide-react';
 import { Short } from '@/hooks/useShorts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuizzes, Quiz } from '@/hooks/useQuizzes';
@@ -11,7 +11,6 @@ import { QuizOverlay } from './QuizOverlay';
 import { SharePanel } from './SharePanel';
 import { AITutorChat } from './AITutorChat';
 import { ReportModal } from './ReportModal';
-import { CommentsPanel } from './CommentsPanel';
 import { CreatorHoverCard } from './CreatorHoverCard';
 import { PopularityBadge } from './PopularityBadge';
 import { DifficultyBadge } from './DifficultyBadge';
