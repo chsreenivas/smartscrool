@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,143 +21,115 @@ export interface Short {
   subtopic?: string | null;
 }
 
+const signVideoUrl = async (videoUrl: string): Promise<string> => {
+  let storagePath: string | null = null;
+  if (videoUrl && !videoUrl.startsWith('http')) {
+    storagePath = videoUrl;
+  } else if (videoUrl && videoUrl.includes('/storage/v1/object/public/videos/')) {
+    storagePath = videoUrl.split('/storage/v1/object/public/videos/')[1];
+  } else if (videoUrl && videoUrl.includes('/storage/v1/object/sign/videos/')) {
+    return videoUrl; // already signed
+  }
+
+  if (storagePath) {
+    const { data: signedData } = await supabase.storage
+      .from('videos')
+      .createSignedUrl(storagePath, 3600);
+    if (signedData?.signedUrl) return signedData.signedUrl;
+  }
+  return videoUrl;
+};
+
 export const useShorts = (
-  category?: string, 
+  category?: string,
   searchQuery?: string,
   difficulty?: string | null,
-  sortBy: 'popular' | 'newest' | 'relevant' = 'popular'
+  sortBy: 'popular' | 'newest' | 'relevant' = 'newest'
 ) => {
   const { user } = useAuth();
   const [shorts, setShorts] = useState<Short[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchShorts = async () => {
+  const fetchShorts = useCallback(async () => {
     setLoading(true);
-    
-    // STEP 4 FIX: Simple query - read all approved videos
-    let query = supabase
-      .from('shorts')
-      .select('id, user_id, title, description, video_url, thumbnail_url, category, subtopic, likes_count, views_count, is_approved, created_at, difficulty_level, ai_summary, topics')
-      .eq('is_approved', true);
 
-    // Filter by category/subject if specified
-    if (category && category !== 'All') {
-      query = query.eq('category', category);
-    }
+    let rawShorts: any[] = [];
 
-    if (difficulty) {
-      query = query.eq('difficulty_level', difficulty);
-    }
+    // Use recommendation algorithm for logged-in users on default feed
+    if (user && !searchQuery) {
+      const { data, error } = await supabase.rpc('get_recommended_feed', {
+        p_user_id: user.id,
+        p_category: category && category !== 'All' ? category : null,
+        p_difficulty: difficulty || null,
+        p_search: null,
+        p_limit: 50,
+      });
 
-    if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-    }
-
-    // Apply sorting
-    switch (sortBy) {
-      case 'popular':
-        query = query.order('views_count', { ascending: false });
-        break;
-      case 'newest':
-        query = query.order('created_at', { ascending: false });
-        break;
-      case 'relevant':
-        query = query.order('views_count', { ascending: false }).order('created_at', { ascending: false });
-        break;
-      default:
-        query = query.order('created_at', { ascending: false });
-    }
-
-    const { data, error } = await query.limit(100);
-
-    if (error) {
-      console.error('Error fetching shorts:', error);
-      setShorts([]);
-    } else if (data) {
-      // Generate signed URLs for private bucket videos
-      const shortsWithUrls = await Promise.all(
-        data.map(async (short) => {
-          let videoUrl = short.video_url;
-          // Extract storage path from full public URLs or use raw path
-          let storagePath: string | null = null;
-          if (videoUrl && !videoUrl.startsWith('http')) {
-            storagePath = videoUrl;
-          } else if (videoUrl && videoUrl.includes('/storage/v1/object/public/videos/')) {
-            storagePath = videoUrl.split('/storage/v1/object/public/videos/')[1];
-          } else if (videoUrl && videoUrl.includes('/storage/v1/object/sign/videos/')) {
-            storagePath = null; // already signed
-          }
-          
-          if (storagePath) {
-            const { data: signedData } = await supabase.storage
-              .from('videos')
-              .createSignedUrl(storagePath, 3600);
-            if (signedData?.signedUrl) {
-              videoUrl = signedData.signedUrl;
-            }
-          }
-          return { ...short, video_url: videoUrl };
-        })
-      );
-
-      // Check which shorts the user has liked
-      if (user) {
-        const { data: likes } = await supabase
-          .from('likes')
-          .select('short_id')
-          .eq('user_id', user.id);
-
-        const likedIds = new Set(likes?.map(l => l.short_id) || []);
-        setShorts(shortsWithUrls.map(short => ({
-          ...short,
-          isLiked: likedIds.has(short.id)
-        })) as Short[]);
+      if (error) {
+        console.error('Recommendation feed error, falling back:', error);
+        // Fallback to simple query
+        rawShorts = await fetchSimple(category, searchQuery, difficulty, sortBy);
       } else {
-        setShorts(shortsWithUrls as Short[]);
+        rawShorts = data || [];
       }
+    } else {
+      // Anonymous users or search mode: use simple query
+      rawShorts = await fetchSimple(category, searchQuery, difficulty, sortBy);
     }
+
+    if (rawShorts.length === 0) {
+      setShorts([]);
+      setLoading(false);
+      return;
+    }
+
+    // Generate signed URLs in parallel
+    const shortsWithUrls = await Promise.all(
+      rawShorts.map(async (short: any) => ({
+        ...short,
+        video_url: await signVideoUrl(short.video_url),
+      }))
+    );
+
+    // Check liked status for logged-in users
+    if (user) {
+      const { data: likes } = await supabase
+        .from('likes')
+        .select('short_id')
+        .eq('user_id', user.id);
+
+      const likedIds = new Set(likes?.map(l => l.short_id) || []);
+      setShorts(shortsWithUrls.map(short => ({
+        ...short,
+        isLiked: likedIds.has(short.id),
+      })) as Short[]);
+    } else {
+      setShorts(shortsWithUrls as Short[]);
+    }
+
     setLoading(false);
-  };
+  }, [category, searchQuery, difficulty, sortBy, user]);
 
   const toggleLike = async (shortId: string) => {
     if (!user) return;
-
     const short = shorts.find(s => s.id === shortId);
     if (!short) return;
 
     if (short.isLiked) {
-      // Delete like - trigger handles count update atomically
-      await supabase
-        .from('likes')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('short_id', shortId);
-
-      // Update local state optimistically
-      setShorts(prev => prev.map(s => 
-        s.id === shortId 
-          ? { ...s, isLiked: false, likes_count: Math.max(0, s.likes_count - 1) }
-          : s
+      await supabase.from('likes').delete().eq('user_id', user.id).eq('short_id', shortId);
+      setShorts(prev => prev.map(s =>
+        s.id === shortId ? { ...s, isLiked: false, likes_count: Math.max(0, s.likes_count - 1) } : s
       ));
     } else {
-      // Insert like - trigger handles count update atomically
-      await supabase
-        .from('likes')
-        .insert({ user_id: user.id, short_id: shortId });
-
-      // Update local state optimistically
-      setShorts(prev => prev.map(s => 
-        s.id === shortId 
-          ? { ...s, isLiked: true, likes_count: s.likes_count + 1 }
-          : s
+      await supabase.from('likes').insert({ user_id: user.id, short_id: shortId });
+      setShorts(prev => prev.map(s =>
+        s.id === shortId ? { ...s, isLiked: true, likes_count: s.likes_count + 1 } : s
       ));
     }
   };
 
   const recordView = async (shortId: string) => {
     if (!user) return 0;
-
-    // Check if already viewed
     const { data: existingView } = await supabase
       .from('short_views')
       .select('id')
@@ -167,7 +139,6 @@ export const useShorts = (
 
     if (existingView) return 0;
 
-    // Record new view - trigger handles views_count update atomically
     const xpEarned = 5;
     await supabase
       .from('short_views')
@@ -178,7 +149,42 @@ export const useShorts = (
 
   useEffect(() => {
     fetchShorts();
-  }, [category, searchQuery, difficulty, sortBy, user]);
+  }, [fetchShorts]);
 
   return { shorts, loading, toggleLike, recordView, refetch: fetchShorts };
 };
+
+// Fallback simple query for anonymous users or when recommendation fails
+async function fetchSimple(
+  category?: string,
+  searchQuery?: string,
+  difficulty?: string | null,
+  sortBy?: string
+): Promise<any[]> {
+  let query = supabase
+    .from('shorts')
+    .select('id, user_id, title, description, video_url, thumbnail_url, category, subtopic, likes_count, views_count, is_approved, created_at, difficulty_level, ai_summary, topics')
+    .eq('is_approved', true);
+
+  if (category && category !== 'All') query = query.eq('category', category);
+  if (difficulty) query = query.eq('difficulty_level', difficulty);
+  if (searchQuery) query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+
+  switch (sortBy) {
+    case 'popular':
+      query = query.order('views_count', { ascending: false });
+      break;
+    case 'newest':
+      query = query.order('created_at', { ascending: false });
+      break;
+    default:
+      query = query.order('created_at', { ascending: false });
+  }
+
+  const { data, error } = await query.limit(100);
+  if (error) {
+    console.error('Error fetching shorts:', error);
+    return [];
+  }
+  return data || [];
+}
