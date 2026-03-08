@@ -189,11 +189,12 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
       <video
         ref={videoRef}
         src={short.video_url}
-        autoPlay
+        autoPlay={isActive}
         playsInline
         loop
         controls
         muted={isMuted}
+        preload={isActive ? 'auto' : 'none'}
         className="w-full h-full object-cover"
         onClick={handleFirstInteraction}
       />
@@ -318,15 +319,17 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
            <span className="text-white text-xs mt-1 font-medium">Save</span>
          </motion.button>
 
-         {/* Quiz */}
-         <motion.button onClick={handleQuizClick} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
-           <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-             quiz && !hasAttemptedQuiz ? 'bg-primary/80 backdrop-blur-sm' : hasAttemptedQuiz ? 'bg-green-500/80 backdrop-blur-sm' : 'bg-white/20 backdrop-blur-sm'
-           }`}>
-             <HelpCircle className="w-6 h-6 text-white" />
-           </div>
-           <span className="text-white text-xs mt-1 font-medium">{hasAttemptedQuiz ? 'Done' : 'Quiz'}</span>
-         </motion.button>
+         {/* Quiz - only show if quiz exists */}
+         {quiz && (
+           <motion.button onClick={handleQuizClick} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                !hasAttemptedQuiz ? 'bg-primary/80 backdrop-blur-sm' : 'bg-green-500/80 backdrop-blur-sm'
+              }`}>
+                <HelpCircle className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-white text-xs mt-1 font-medium">{hasAttemptedQuiz ? 'Done' : 'Quiz'}</span>
+            </motion.button>
+         )}
 
         {/* AI Tutor */}
         <motion.button onClick={handleTutorClick} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">

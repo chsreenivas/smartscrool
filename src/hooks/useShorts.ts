@@ -62,7 +62,7 @@ export const useShorts = (
         p_category: category && category !== 'All' ? category : null,
         p_difficulty: difficulty || null,
         p_search: null,
-        p_limit: 50,
+        p_limit: 30,
       });
 
       if (error) {
@@ -181,7 +181,7 @@ async function fetchSimple(
       query = query.order('created_at', { ascending: false });
   }
 
-  const { data, error } = await query.limit(100);
+  const { data, error } = await query.limit(30);
   if (error) {
     console.error('Error fetching shorts:', error);
     return [];
