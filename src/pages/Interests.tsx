@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Check, Brain, Microscope, BookOpen, DollarSign, Lightbulb } from 'lucide-react';
+import { Check, Brain, Microscope, BookOpen, DollarSign, Lightbulb, Music, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
@@ -12,6 +12,8 @@ const interests = [
   { id: 'Psychology', icon: Brain, emoji: '🧠', color: 'from-purple-500 to-pink-500' },
   { id: 'Money', icon: DollarSign, emoji: '💰', color: 'from-green-500 to-emerald-500' },
   { id: 'Technology', icon: Lightbulb, emoji: '💡', color: 'from-yellow-500 to-amber-500' },
+  { id: 'Music', icon: Music, emoji: '🎵', color: 'from-pink-500 to-rose-500' },
+  { id: 'SAT Prep', icon: Trophy, emoji: '📝', color: 'from-indigo-500 to-purple-500' },
 ];
 
 const Interests = () => {
