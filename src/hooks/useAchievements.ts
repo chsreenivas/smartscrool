@@ -21,7 +21,7 @@ export const useAchievements = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchAchievements = useCallback(async () => {
-    const { data: allAchievements } = await (supabase as any)
+    const { data: allAchievements } = await supabase
       .from('achievements')
       .select('*')
       .order('requirement_value', { ascending: true });
@@ -49,20 +49,14 @@ export const useAchievements = () => {
     setLoading(false);
   }, [user]);
 
-  const checkAndAwardAchievements = useCallback(async (stats: {
-    xp?: number;
-    streak?: number;
-    quizzes?: number;
-    videosWatched?: number;
-    videosCreated?: number;
-  }) => {
+  const checkAndAwardAchievements = useCallback(async () => {
     if (!user) return;
 
-    const { data: unearned } = await (supabase as any)
+    const { data: allAchievements } = await supabase
       .from('achievements')
       .select('*');
 
-    if (!unearned) return;
+    if (!allAchievements) return;
 
     const { data: alreadyEarned } = await (supabase as any)
       .from('user_achievements')
@@ -71,46 +65,19 @@ export const useAchievements = () => {
 
     const earnedIds = new Set(alreadyEarned?.map((e: any) => e.achievement_id) || []);
 
-    for (const achievement of unearned) {
+    for (const achievement of allAchievements) {
       if (earnedIds.has(achievement.id)) continue;
 
-      let meetsRequirement = false;
-      
-      switch (achievement.requirement_type) {
-        case 'xp':
-          meetsRequirement = (stats.xp || 0) >= achievement.requirement_value;
-          break;
-        case 'streak':
-          meetsRequirement = (stats.streak || 0) >= achievement.requirement_value;
-          break;
-        case 'quizzes':
-          meetsRequirement = (stats.quizzes || 0) >= achievement.requirement_value;
-          break;
-        case 'videos_watched':
-          meetsRequirement = (stats.videosWatched || 0) >= achievement.requirement_value;
-          break;
-        case 'videos_created':
-          meetsRequirement = (stats.videosCreated || 0) >= achievement.requirement_value;
-          break;
-      }
+      const { data } = await supabase.rpc('award_achievement', {
+        p_achievement_id: achievement.id
+      });
 
-      if (meetsRequirement) {
-        const { error } = await (supabase as any)
-          .from('user_achievements')
-          .insert({ user_id: user.id, achievement_id: achievement.id });
-
-        if (!error) {
-          toast.success(
-            `🏆 Achievement Unlocked: ${achievement.name}! +${achievement.xp_reward} XP`,
-            { duration: 5000 }
-          );
-          
-          // Add XP reward
-          await supabase
-            .from('profiles')
-            .update({ xp: stats.xp! + achievement.xp_reward })
-            .eq('id', user.id);
-        }
+      const result = data as any;
+      if (result?.success) {
+        toast.success(
+          `🏆 Achievement Unlocked: ${achievement.name}! +${result.xp_reward} XP`,
+          { duration: 5000 }
+        );
       }
     }
 
