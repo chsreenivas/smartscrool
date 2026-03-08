@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Play, Volume2, VolumeX, HelpCircle, MessageSquare, Send, Flag, User, Bookmark, MessageCircle, Subtitles } from 'lucide-react';
+import { Heart, Play, Volume2, VolumeX, HelpCircle, MessageSquare, Send, Flag, User, Bookmark, Subtitles } from 'lucide-react';
 import { Short } from '@/hooks/useShorts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuizzes, Quiz } from '@/hooks/useQuizzes';
@@ -11,7 +11,6 @@ import { QuizOverlay } from './QuizOverlay';
 import { SharePanel } from './SharePanel';
 import { AITutorChat } from './AITutorChat';
 import { ReportModal } from './ReportModal';
-import { CommentsPanel } from './CommentsPanel';
 import { CreatorHoverCard } from './CreatorHoverCard';
 import { PopularityBadge } from './PopularityBadge';
 import { DifficultyBadge } from './DifficultyBadge';
@@ -45,7 +44,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
   const [showShare, setShowShare] = useState(false);
   const [showTutor, setShowTutor] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [showComments, setShowComments] = useState(false);
   const [showCaptions, setShowCaptions] = useState(false);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [hasAttemptedQuiz, setHasAttemptedQuiz] = useState(false);
@@ -292,31 +290,23 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
           <span className="text-white text-xs mt-1 font-medium">{short.likes_count}</span>
         </motion.button>
 
-        {/* Bookmark */}
-        <motion.button onClick={handleBookmark} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isBookmarked(short.id) ? 'bg-primary' : 'bg-white/20 backdrop-blur-sm'}`}>
-            <Bookmark className={`w-6 h-6 ${isBookmarked(short.id) ? 'text-primary-foreground fill-primary-foreground' : 'text-white'}`} />
-          </div>
-          <span className="text-white text-xs mt-1 font-medium">Save</span>
-        </motion.button>
+         {/* Bookmark */}
+         <motion.button onClick={handleBookmark} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
+           <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isBookmarked(short.id) ? 'bg-primary' : 'bg-white/20 backdrop-blur-sm'}`}>
+             <Bookmark className={`w-6 h-6 ${isBookmarked(short.id) ? 'text-primary-foreground fill-primary-foreground' : 'text-white'}`} />
+           </div>
+           <span className="text-white text-xs mt-1 font-medium">Save</span>
+         </motion.button>
 
-        {/* Comments */}
-        <motion.button onClick={() => setShowComments(true)} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <MessageCircle className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-white text-xs mt-1 font-medium">Chat</span>
-        </motion.button>
-
-        {/* Quiz */}
-        <motion.button onClick={handleQuizClick} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-            quiz && !hasAttemptedQuiz ? 'bg-primary/80 backdrop-blur-sm' : hasAttemptedQuiz ? 'bg-green-500/80 backdrop-blur-sm' : 'bg-white/20 backdrop-blur-sm'
-          }`}>
-            <HelpCircle className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-white text-xs mt-1 font-medium">{hasAttemptedQuiz ? 'Done' : 'Quiz'}</span>
-        </motion.button>
+         {/* Quiz */}
+         <motion.button onClick={handleQuizClick} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
+           <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+             quiz && !hasAttemptedQuiz ? 'bg-primary/80 backdrop-blur-sm' : hasAttemptedQuiz ? 'bg-green-500/80 backdrop-blur-sm' : 'bg-white/20 backdrop-blur-sm'
+           }`}>
+             <HelpCircle className="w-6 h-6 text-white" />
+           </div>
+           <span className="text-white text-xs mt-1 font-medium">{hasAttemptedQuiz ? 'Done' : 'Quiz'}</span>
+         </motion.button>
 
         {/* AI Tutor */}
         <motion.button onClick={handleTutorClick} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
@@ -377,7 +367,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
       <SharePanel isOpen={showShare} onClose={() => setShowShare(false)} shortId={short.id} shortTitle={short.title} />
       <AITutorChat isOpen={showTutor} onClose={() => setShowTutor(false)} shortTitle={short.title} shortDescription={short.description} category={short.category} />
       <ReportModal isOpen={showReport} onClose={() => setShowReport(false)} shortId={short.id} shortTitle={short.title} />
-      <CommentsPanel isOpen={showComments} onClose={() => setShowComments(false)} shortId={short.id} />
     </div>
   );
 };
