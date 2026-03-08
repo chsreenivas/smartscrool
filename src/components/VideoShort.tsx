@@ -367,7 +367,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
       <SharePanel isOpen={showShare} onClose={() => setShowShare(false)} shortId={short.id} shortTitle={short.title} />
       <AITutorChat isOpen={showTutor} onClose={() => setShowTutor(false)} shortTitle={short.title} shortDescription={short.description} category={short.category} />
       <ReportModal isOpen={showReport} onClose={() => setShowReport(false)} shortId={short.id} shortTitle={short.title} />
-      <CommentsPanel isOpen={showComments} onClose={() => setShowComments(false)} shortId={short.id} />
     </div>
   );
 };
