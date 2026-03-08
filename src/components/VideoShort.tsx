@@ -169,8 +169,10 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
       <video
         ref={videoRef}
         src={short.video_url}
+        autoPlay
         playsInline
         loop
+        controls
         muted={isMuted}
         className="w-full h-full object-cover"
         onClick={handleFirstInteraction}

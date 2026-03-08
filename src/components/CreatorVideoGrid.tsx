@@ -51,7 +51,7 @@ export const CreatorVideoGrid = ({ videos, layout = 'grid' }: CreatorVideoGridPr
           {video.thumbnail_url ? (
             <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover" />
           ) : (
-            <video src={video.video_url} className="w-full h-full object-cover" muted preload="metadata" />
+            <video src={video.video_url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
           )}
 
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">

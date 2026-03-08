@@ -74,6 +74,23 @@ export const useShorts = (
       console.error('Error fetching shorts:', error);
       setShorts([]);
     } else if (data) {
+      // Generate signed URLs for private bucket videos
+      const shortsWithUrls = await Promise.all(
+        data.map(async (short) => {
+          let videoUrl = short.video_url;
+          // If it's a storage path (not a full URL), create a signed URL
+          if (videoUrl && !videoUrl.startsWith('http')) {
+            const { data: signedData } = await supabase.storage
+              .from('videos')
+              .createSignedUrl(videoUrl, 3600); // 1 hour
+            if (signedData?.signedUrl) {
+              videoUrl = signedData.signedUrl;
+            }
+          }
+          return { ...short, video_url: videoUrl };
+        })
+      );
+
       // Check which shorts the user has liked
       if (user) {
         const { data: likes } = await supabase
@@ -82,12 +99,12 @@ export const useShorts = (
           .eq('user_id', user.id);
 
         const likedIds = new Set(likes?.map(l => l.short_id) || []);
-        setShorts(data.map(short => ({
+        setShorts(shortsWithUrls.map(short => ({
           ...short,
           isLiked: likedIds.has(short.id)
         })) as Short[]);
       } else {
-        setShorts(data as Short[]);
+        setShorts(shortsWithUrls as Short[]);
       }
     }
     setLoading(false);
