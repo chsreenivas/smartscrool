@@ -913,6 +913,7 @@ export type Database = {
         Args: { user_id_1: string; user_id_2: string }
         Returns: boolean
       }
+      award_achievement: { Args: { p_achievement_id: string }; Returns: Json }
       award_xp: {
         Args: {
           p_amount: number
