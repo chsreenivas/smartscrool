@@ -51,6 +51,7 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
   const { getQuizForShort, hasAttemptedQuiz: checkAttempted } = useQuizzes();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const hasRecordedView = useRef(false);
+  const activatedAt = useRef<number | null>(null);
 
   useEffect(() => {
     const loadQuiz = async () => {
