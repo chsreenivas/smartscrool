@@ -44,7 +44,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
   const [showShare, setShowShare] = useState(false);
   const [showTutor, setShowTutor] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [showComments, setShowComments] = useState(false);
   const [showCaptions, setShowCaptions] = useState(false);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [hasAttemptedQuiz, setHasAttemptedQuiz] = useState(false);
