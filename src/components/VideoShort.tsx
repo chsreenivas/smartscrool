@@ -182,7 +182,7 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
 
   const difficultyLevel = short.difficulty_level as 'easy' | 'medium' | 'hard' | undefined;
 
-  console.log("Signed video URL:", short.video_url);
+  
 
   return (
     <div className="relative w-full h-full bg-background">
