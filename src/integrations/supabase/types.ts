@@ -1028,6 +1028,10 @@ export type Database = {
         Args: { p_follower_id: string; p_following_id: string }
         Returns: boolean
       }
+      is_group_member: {
+        Args: { p_group_id: string; p_user_id: string }
+        Returns: boolean
+      }
       is_new_user: { Args: { p_user_id: string }; Returns: boolean }
       record_topic_video_view: {
         Args: { p_topic: string; p_user_id: string }
