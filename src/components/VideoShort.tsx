@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Play, Volume2, VolumeX, HelpCircle, MessageSquare, Send, Flag, User, Bookmark, Subtitles } from 'lucide-react';
 import { Short } from '@/hooks/useShorts';
