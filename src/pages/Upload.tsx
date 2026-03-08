@@ -86,7 +86,7 @@ const Upload = () => {
 
       // STEP 3: INSERT into database - this MUST succeed
       // Videos require moderation before appearing in feeds
-      const { error: dbError } = await supabase
+      const { data: insertedShort, error: dbError } = await supabase
         .from('shorts')
         .insert({
           user_id: user.id,
@@ -96,20 +96,37 @@ const Upload = () => {
           category,
           subtopic,
           is_approved: false // Requires moderation before going live
-        });
+        })
+        .select('id')
+        .single();
 
-      if (dbError) {
+      if (dbError || !insertedShort) {
         // FAILSAFE: Delete the uploaded file if DB insert fails
         if (uploadedFilePath) {
           await supabase.storage
             .from('videos')
             .remove([uploadedFilePath]);
         }
-        throw new Error(`Database insert failed: ${dbError.message}`);
+        throw new Error(`Database insert failed: ${dbError?.message}`);
       }
 
-      // STEP 4: SUCCESS - only now show success message
-      toast.success('Video uploaded! It will be reviewed before going live. 🎉');
+      // STEP 4: Auto-generate quiz and summary in background (fire-and-forget)
+      const shortId = insertedShort.id;
+      const generateContent = async (type: 'quiz' | 'summary') => {
+        try {
+          await supabase.functions.invoke('ai-generate', {
+            body: { type, shortId, title, description, transcript: null },
+          });
+        } catch (e) {
+          console.warn(`Auto-generate ${type} failed (non-blocking):`, e);
+        }
+      };
+      // Don't await — let these run in the background
+      generateContent('quiz');
+      generateContent('summary');
+
+      // STEP 5: SUCCESS - only now show success message
+      toast.success('Video uploaded! Quiz & summary are being generated automatically. 🎉');
       navigate('/profile');
 
     } catch (error: any) {
