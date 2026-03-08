@@ -78,11 +78,20 @@ export const useShorts = (
       const shortsWithUrls = await Promise.all(
         data.map(async (short) => {
           let videoUrl = short.video_url;
-          // If it's a storage path (not a full URL), create a signed URL
+          // Extract storage path from full public URLs or use raw path
+          let storagePath: string | null = null;
           if (videoUrl && !videoUrl.startsWith('http')) {
+            storagePath = videoUrl;
+          } else if (videoUrl && videoUrl.includes('/storage/v1/object/public/videos/')) {
+            storagePath = videoUrl.split('/storage/v1/object/public/videos/')[1];
+          } else if (videoUrl && videoUrl.includes('/storage/v1/object/sign/videos/')) {
+            storagePath = null; // already signed
+          }
+          
+          if (storagePath) {
             const { data: signedData } = await supabase.storage
               .from('videos')
-              .createSignedUrl(videoUrl, 3600); // 1 hour
+              .createSignedUrl(storagePath, 3600);
             if (signedData?.signedUrl) {
               videoUrl = signedData.signedUrl;
             }
