@@ -65,9 +65,10 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
     loadQuiz();
   }, [short.id, user]);
 
-  // Autoplay/pause based on active state - TikTok behavior
+  // Autoplay/pause based on active state - TikTok behavior + watch time tracking
   useEffect(() => {
     if (isActive && videoRef.current) {
+      activatedAt.current = Date.now();
       videoRef.current.muted = !sessionSoundEnabled;
       setIsMuted(!sessionSoundEnabled);
       videoRef.current.play().catch(() => {});
@@ -87,8 +88,25 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
     } else if (videoRef.current) {
       videoRef.current.pause();
       setIsPlaying(false);
+
+      // Track watch time when leaving this video
+      if (activatedAt.current && user) {
+        const timeSpent = Math.round((Date.now() - activatedAt.current) / 1000);
+        activatedAt.current = null;
+        // Fire and forget - upsert watch time into user_video_progress
+        supabase.from('user_video_progress').upsert(
+          {
+            user_id: user.id,
+            short_id: short.id,
+            time_spent: timeSpent,
+            completed: timeSpent > 15,
+            last_position: Math.min(timeSpent, 60),
+          },
+          { onConflict: 'user_id,short_id' }
+        ).then(() => {});
+      }
     }
-  }, [isActive, onView, xpEarned]);
+  }, [isActive, onView, xpEarned, user, short.id]);
 
   const togglePlay = () => {
     if (videoRef.current) {
