@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Play, Volume2, VolumeX, HelpCircle, MessageSquare, Send, Flag, User, Bookmark, Subtitles } from 'lucide-react';
 import { Short } from '@/hooks/useShorts';
@@ -51,6 +52,7 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
   const { getQuizForShort, hasAttemptedQuiz: checkAttempted } = useQuizzes();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const hasRecordedView = useRef(false);
+  const activatedAt = useRef<number | null>(null);
 
   useEffect(() => {
     const loadQuiz = async () => {
@@ -64,9 +66,10 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
     loadQuiz();
   }, [short.id, user]);
 
-  // Autoplay/pause based on active state - TikTok behavior
+  // Autoplay/pause based on active state - TikTok behavior + watch time tracking
   useEffect(() => {
     if (isActive && videoRef.current) {
+      activatedAt.current = Date.now();
       videoRef.current.muted = !sessionSoundEnabled;
       setIsMuted(!sessionSoundEnabled);
       videoRef.current.play().catch(() => {});
@@ -86,8 +89,25 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
     } else if (videoRef.current) {
       videoRef.current.pause();
       setIsPlaying(false);
+
+      // Track watch time when leaving this video
+      if (activatedAt.current && user) {
+        const timeSpent = Math.round((Date.now() - activatedAt.current) / 1000);
+        activatedAt.current = null;
+        // Fire and forget - upsert watch time into user_video_progress
+        supabase.from('user_video_progress').upsert(
+          {
+            user_id: user.id,
+            short_id: short.id,
+            time_spent: timeSpent,
+            completed: timeSpent > 15,
+            last_position: Math.min(timeSpent, 60),
+          },
+          { onConflict: 'user_id,short_id' }
+        ).then(() => {});
+      }
     }
-  }, [isActive, onView, xpEarned]);
+  }, [isActive, onView, xpEarned, user, short.id]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -162,7 +182,7 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
 
   const difficultyLevel = short.difficulty_level as 'easy' | 'medium' | 'hard' | undefined;
 
-  console.log("Signed video URL:", short.video_url);
+  
 
   return (
     <div className="relative w-full h-full bg-background">

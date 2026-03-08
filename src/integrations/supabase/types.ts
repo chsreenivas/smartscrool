@@ -977,6 +977,33 @@ export type Database = {
           xp_reward: number
         }[]
       }
+      get_recommended_feed: {
+        Args: {
+          p_category?: string
+          p_difficulty?: string
+          p_limit?: number
+          p_search?: string
+          p_user_id: string
+        }
+        Returns: {
+          ai_summary: string
+          category: string
+          created_at: string
+          description: string
+          difficulty_level: string
+          id: string
+          is_approved: boolean
+          likes_count: number
+          recommendation_score: number
+          subtopic: string
+          thumbnail_url: string
+          title: string
+          topics: string[]
+          user_id: string
+          video_url: string
+          views_count: number
+        }[]
+      }
       get_starter_feed: {
         Args: { p_limit?: number }
         Returns: {
