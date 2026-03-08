@@ -47,6 +47,41 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_summaries: {
+        Row: {
+          created_at: string
+          id: string
+          key_points: Json
+          related_topics: Json
+          short_id: string
+          summary: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_points?: Json
+          related_topics?: Json
+          short_id: string
+          summary: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_points?: Json
+          related_topics?: Json
+          short_id?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_summaries_short_id_fkey"
+            columns: ["short_id"]
+            isOneToOne: true
+            referencedRelation: "shorts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookmarks: {
         Row: {
           created_at: string
@@ -525,6 +560,7 @@ export type Database = {
         Row: {
           correct_answer: number
           created_at: string
+          explanation: string | null
           id: string
           options: Json
           question: string
@@ -534,6 +570,7 @@ export type Database = {
         Insert: {
           correct_answer: number
           created_at?: string
+          explanation?: string | null
           id?: string
           options: Json
           question: string
@@ -543,6 +580,7 @@ export type Database = {
         Update: {
           correct_answer?: number
           created_at?: string
+          explanation?: string | null
           id?: string
           options?: Json
           question?: string
