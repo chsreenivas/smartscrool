@@ -290,31 +290,23 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
           <span className="text-white text-xs mt-1 font-medium">{short.likes_count}</span>
         </motion.button>
 
-        {/* Bookmark */}
-        <motion.button onClick={handleBookmark} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isBookmarked(short.id) ? 'bg-primary' : 'bg-white/20 backdrop-blur-sm'}`}>
-            <Bookmark className={`w-6 h-6 ${isBookmarked(short.id) ? 'text-primary-foreground fill-primary-foreground' : 'text-white'}`} />
-          </div>
-          <span className="text-white text-xs mt-1 font-medium">Save</span>
-        </motion.button>
+         {/* Bookmark */}
+         <motion.button onClick={handleBookmark} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
+           <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isBookmarked(short.id) ? 'bg-primary' : 'bg-white/20 backdrop-blur-sm'}`}>
+             <Bookmark className={`w-6 h-6 ${isBookmarked(short.id) ? 'text-primary-foreground fill-primary-foreground' : 'text-white'}`} />
+           </div>
+           <span className="text-white text-xs mt-1 font-medium">Save</span>
+         </motion.button>
 
-        {/* Comments */}
-        <motion.button onClick={() => setShowComments(true)} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <MessageCircle className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-white text-xs mt-1 font-medium">Chat</span>
-        </motion.button>
-
-        {/* Quiz */}
-        <motion.button onClick={handleQuizClick} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-            quiz && !hasAttemptedQuiz ? 'bg-primary/80 backdrop-blur-sm' : hasAttemptedQuiz ? 'bg-green-500/80 backdrop-blur-sm' : 'bg-white/20 backdrop-blur-sm'
-          }`}>
-            <HelpCircle className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-white text-xs mt-1 font-medium">{hasAttemptedQuiz ? 'Done' : 'Quiz'}</span>
-        </motion.button>
+         {/* Quiz */}
+         <motion.button onClick={handleQuizClick} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
+           <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+             quiz && !hasAttemptedQuiz ? 'bg-primary/80 backdrop-blur-sm' : hasAttemptedQuiz ? 'bg-green-500/80 backdrop-blur-sm' : 'bg-white/20 backdrop-blur-sm'
+           }`}>
+             <HelpCircle className="w-6 h-6 text-white" />
+           </div>
+           <span className="text-white text-xs mt-1 font-medium">{hasAttemptedQuiz ? 'Done' : 'Quiz'}</span>
+         </motion.button>
 
         {/* AI Tutor */}
         <motion.button onClick={handleTutorClick} whileTap={{ scale: 0.9 }} className="flex flex-col items-center">
