@@ -16,7 +16,7 @@ export const useVideoPreload = ({ preloadCount = 1, currentIndex, videoUrls }: P
     preloadQueue.current.add(url);
     
     const video = document.createElement('video');
-    video.preload = 'auto';
+    video.preload = 'metadata';
     video.muted = true;
     video.playsInline = true;
     
