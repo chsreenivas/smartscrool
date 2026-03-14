@@ -89,10 +89,20 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
   useEffect(() => {
     if (isActive && videoRef.current) {
       activatedAt.current = Date.now();
+      // Always start muted for autoplay; unmute if user already interacted
       videoRef.current.muted = !sessionSoundEnabled;
       setIsMuted(!sessionSoundEnabled);
       videoRef.current.play().catch(() => {});
       setIsPlaying(true);
+
+      // Listen for first interaction to auto-unmute this active video
+      const handleSessionInteraction = () => {
+        if (videoRef.current && isActive) {
+          videoRef.current.muted = false;
+          setIsMuted(false);
+        }
+      };
+      window.addEventListener('session-interaction', handleSessionInteraction);
       
       if (!hasRecordedView.current) {
         const timer = setTimeout(() => {
@@ -103,7 +113,17 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
             setTimeout(() => setShowXP(false), 2000);
           }
         }, 3000);
-        return () => clearTimeout(timer);
+        return () => {
+          clearTimeout(timer);
+          window.removeEventListener('session-interaction', handleSessionInteraction);
+        };
+      }
+      return () => {
+        window.removeEventListener('session-interaction', handleSessionInteraction);
+      };
+    } else if (videoRef.current) {
+      videoRef.current.pause();
+      setIsPlaying(false);
       }
     } else if (videoRef.current) {
       videoRef.current.pause();
