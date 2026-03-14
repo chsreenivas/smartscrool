@@ -25,6 +25,7 @@ const Upload = () => {
   const [subtopic, setSubtopic] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const uploadInProgress = useRef(false);
+  const { compressVideo, progress: compressionProgress, resetProgress } = useVideoCompression();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
