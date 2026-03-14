@@ -141,6 +141,7 @@ const Upload = () => {
     } finally {
       setIsUploading(false);
       uploadInProgress.current = false;
+      resetProgress();
     }
   };
 
