@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SubtopicSelect } from '@/components/SubtopicSelect';
+import { useVideoCompression } from '@/hooks/useVideoCompression';
 
 const categories = ['Math', 'Science', 'History', 'Psychology', 'ELA', 'Money', 'Technology', 'SAT Prep', 'Music', 'Philosophy'];
 
@@ -24,6 +25,7 @@ const Upload = () => {
   const [subtopic, setSubtopic] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const uploadInProgress = useRef(false);
+  const { compressVideo, progress: compressionProgress, resetProgress } = useVideoCompression();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -58,14 +60,18 @@ const Upload = () => {
     setIsUploading(true);
     uploadInProgress.current = true;
 
-    const fileName = `${user.id}/${Date.now()}_${selectedFile.name}`;
-    let uploadedFilePath: string | null = null;
-
     try {
-      // STEP 1: Upload file to storage bucket
+      // STEP 0: Compress video before upload
+      toast.info('Compressing video for optimal playback...');
+      const { file: fileToUpload } = await compressVideo(selectedFile);
+
+      const fileName = `${user.id}/${Date.now()}_${fileToUpload.name}`;
+      let uploadedFilePath: string | null = null;
+
+      // STEP 1: Upload compressed file to storage bucket
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('videos')
-        .upload(fileName, selectedFile);
+        .upload(fileName, fileToUpload);
 
       if (uploadError) {
         throw new Error(`Storage upload failed: ${uploadError.message}`);
@@ -135,6 +141,7 @@ const Upload = () => {
     } finally {
       setIsUploading(false);
       uploadInProgress.current = false;
+      resetProgress();
     }
   };
 
@@ -259,7 +266,11 @@ const Upload = () => {
               {isUploading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Uploading...
+                  {compressionProgress?.stage === 'compressing'
+                    ? compressionProgress.message
+                    : compressionProgress?.stage === 'loading'
+                    ? 'Loading compressor...'
+                    : 'Uploading...'}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
