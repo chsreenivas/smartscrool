@@ -59,10 +59,7 @@ export const useVideoPreload = ({ preloadCount = 1, currentIndex, videoUrls }: P
       }
     }
     
-    // Also preload previous video for smooth backwards scroll
-    if (currentIndex > 0) {
-      urlsToPreload.push(videoUrls[currentIndex - 1]);
-    }
+    // Don't preload previous - it's already cached in the browser if visited
     
     urlsToPreload.forEach(preloadVideo);
     
