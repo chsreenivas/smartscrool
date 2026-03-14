@@ -266,7 +266,11 @@ const Upload = () => {
               {isUploading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Uploading...
+                  {compressionProgress?.stage === 'compressing'
+                    ? compressionProgress.message
+                    : compressionProgress?.stage === 'loading'
+                    ? 'Loading compressor...'
+                    : 'Uploading...'}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
