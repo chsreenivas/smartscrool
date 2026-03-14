@@ -124,10 +124,6 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
     } else if (videoRef.current) {
       videoRef.current.pause();
       setIsPlaying(false);
-      }
-    } else if (videoRef.current) {
-      videoRef.current.pause();
-      setIsPlaying(false);
 
       // Track watch time when leaving this video
       if (activatedAt.current && user) {
