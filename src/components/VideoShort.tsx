@@ -32,14 +32,33 @@ interface VideoShortProps {
   showStarterBadge?: boolean;
 }
 
-// Session-level sound state
+// Session-level sound state: tracks whether user has interacted with the page
+let sessionInteracted = false;
 let sessionSoundEnabled = false;
+
+// Set up a one-time global listener for first user interaction
+if (typeof window !== 'undefined' && !sessionInteracted) {
+  const markInteracted = () => {
+    sessionInteracted = true;
+    sessionSoundEnabled = true;
+    // Dispatch custom event so active VideoShort can unmute
+    window.dispatchEvent(new CustomEvent('session-interaction'));
+    window.removeEventListener('click', markInteracted);
+    window.removeEventListener('touchstart', markInteracted);
+    window.removeEventListener('scroll', markInteracted, true);
+    window.removeEventListener('wheel', markInteracted);
+  };
+  window.addEventListener('click', markInteracted, { once: false });
+  window.addEventListener('touchstart', markInteracted, { once: false });
+  window.addEventListener('scroll', markInteracted, { capture: true, once: false });
+  window.addEventListener('wheel', markInteracted, { once: false });
+}
 
 export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStarterBadge }: VideoShortProps) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(!sessionSoundEnabled);
+  const [isMuted, setIsMuted] = useState(true); // Always start muted
   const [showXP, setShowXP] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
   const [showShare, setShowShare] = useState(false);
@@ -70,10 +89,20 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
   useEffect(() => {
     if (isActive && videoRef.current) {
       activatedAt.current = Date.now();
+      // Always start muted for autoplay; unmute if user already interacted
       videoRef.current.muted = !sessionSoundEnabled;
       setIsMuted(!sessionSoundEnabled);
       videoRef.current.play().catch(() => {});
       setIsPlaying(true);
+
+      // Listen for first interaction to auto-unmute this active video
+      const handleSessionInteraction = () => {
+        if (videoRef.current && isActive) {
+          videoRef.current.muted = false;
+          setIsMuted(false);
+        }
+      };
+      window.addEventListener('session-interaction', handleSessionInteraction);
       
       if (!hasRecordedView.current) {
         const timer = setTimeout(() => {
@@ -84,8 +113,14 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
             setTimeout(() => setShowXP(false), 2000);
           }
         }, 3000);
-        return () => clearTimeout(timer);
+        return () => {
+          clearTimeout(timer);
+          window.removeEventListener('session-interaction', handleSessionInteraction);
+        };
       }
+      return () => {
+        window.removeEventListener('session-interaction', handleSessionInteraction);
+      };
     } else if (videoRef.current) {
       videoRef.current.pause();
       setIsPlaying(false);
