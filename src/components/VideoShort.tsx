@@ -32,8 +32,27 @@ interface VideoShortProps {
   showStarterBadge?: boolean;
 }
 
-// Session-level sound state
+// Session-level sound state: tracks whether user has interacted with the page
+let sessionInteracted = false;
 let sessionSoundEnabled = false;
+
+// Set up a one-time global listener for first user interaction
+if (typeof window !== 'undefined' && !sessionInteracted) {
+  const markInteracted = () => {
+    sessionInteracted = true;
+    sessionSoundEnabled = true;
+    // Dispatch custom event so active VideoShort can unmute
+    window.dispatchEvent(new CustomEvent('session-interaction'));
+    window.removeEventListener('click', markInteracted);
+    window.removeEventListener('touchstart', markInteracted);
+    window.removeEventListener('scroll', markInteracted, true);
+    window.removeEventListener('wheel', markInteracted);
+  };
+  window.addEventListener('click', markInteracted, { once: false });
+  window.addEventListener('touchstart', markInteracted, { once: false });
+  window.addEventListener('scroll', markInteracted, { capture: true, once: false });
+  window.addEventListener('wheel', markInteracted, { once: false });
+}
 
 export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStarterBadge }: VideoShortProps) => {
   const navigate = useNavigate();
