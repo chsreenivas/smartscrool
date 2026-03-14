@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SubtopicSelect } from '@/components/SubtopicSelect';
+import { useVideoCompression } from '@/hooks/useVideoCompression';
 
 const categories = ['Math', 'Science', 'History', 'Psychology', 'ELA', 'Money', 'Technology', 'SAT Prep', 'Music', 'Philosophy'];
 
