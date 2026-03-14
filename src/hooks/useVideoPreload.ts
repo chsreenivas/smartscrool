@@ -6,7 +6,7 @@ interface PreloadConfig {
   videoUrls: string[];
 }
 
-export const useVideoPreload = ({ preloadCount = 2, currentIndex, videoUrls }: PreloadConfig) => {
+export const useVideoPreload = ({ preloadCount = 1, currentIndex, videoUrls }: PreloadConfig) => {
   const preloadedVideos = useRef<Map<string, HTMLVideoElement>>(new Map());
   const preloadQueue = useRef<Set<string>>(new Set());
 
