@@ -65,8 +65,8 @@ export const useVideoPreload = ({ preloadCount = 1, currentIndex, videoUrls }: P
     
     // Cleanup videos that are too far away
     const nearbyUrls = videoUrls.slice(
-      Math.max(0, currentIndex - 2),
-      Math.min(videoUrls.length, currentIndex + preloadCount + 2)
+      Math.max(0, currentIndex - 1),
+      Math.min(videoUrls.length, currentIndex + preloadCount + 1)
     );
     cleanupOldVideos(nearbyUrls);
   }, [currentIndex, videoUrls, preloadCount, preloadVideo, cleanupOldVideos]);

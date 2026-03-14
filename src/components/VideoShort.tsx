@@ -229,7 +229,7 @@ export const VideoShort = ({ short, isActive, onLike, onView, xpEarned, showStar
         loop
         controls
         muted={isMuted}
-        preload={isActive ? 'auto' : 'none'}
+        preload="metadata"
         className="w-full h-full object-cover"
         onClick={handleFirstInteraction}
       />
