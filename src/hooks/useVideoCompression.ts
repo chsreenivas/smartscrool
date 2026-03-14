@@ -81,7 +81,7 @@ export const useVideoCompression = () => {
       ]);
 
       const outputData = await ffmpeg.readFile(outputName);
-      const compressedBlob = new Blob([outputData], { type: 'video/mp4' });
+      const compressedBlob = new Blob([new Uint8Array(outputData as Uint8Array)], { type: 'video/mp4' });
       const compressedSize = compressedBlob.size;
 
       // If compression made the file bigger, use original
