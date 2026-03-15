@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Brain, BookOpen, Calculator, FlaskConical, History, Music, Lightbulb, DollarSign, Laptop, GraduationCap, ArrowRight } from 'lucide-react';
+import { Brain, BookOpen, Calculator, FlaskConical, History, Music, Lightbulb, DollarSign, Laptop, GraduationCap, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const quizTopics = [
