@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Brain, BookOpen, Calculator, FlaskConical, History, Music, Lightbulb, DollarSign, Laptop, GraduationCap, ArrowRight } from 'lucide-react';
+import { Brain, BookOpen, Calculator, FlaskConical, History, Music, Lightbulb, DollarSign, Laptop, GraduationCap, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const quizTopics = [
@@ -129,20 +129,32 @@ const QuizHub = () => {
         </div>
 
         <motion.div
-          className="mt-12 text-center"
+          className="mt-12 text-center space-y-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <p className="text-muted-foreground mb-4">
-            Want to learn through videos instead?
-          </p>
           <button
-            onClick={() => navigate('/feed')}
-            className="px-6 py-3 rounded-full bg-gradient-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
+            onClick={() => navigate('/quiz')}
+            className="px-6 py-3 rounded-full bg-gradient-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2"
           >
-            Browse Video Feed
+            <Sparkles className="w-5 h-5" />
+            Take Your Personalized Quiz
           </button>
+          <p className="text-muted-foreground text-sm">
+            Based on the videos you've watched
+          </p>
+          <div className="pt-4">
+            <p className="text-muted-foreground mb-4">
+              Want to learn through videos instead?
+            </p>
+            <button
+              onClick={() => navigate('/feed')}
+              className="px-6 py-3 rounded-full bg-gradient-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
+            >
+              Browse Video Feed
+            </button>
+          </div>
         </motion.div>
       </main>
     </div>

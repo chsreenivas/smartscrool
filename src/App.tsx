@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import QuizHub from "./pages/QuizHub";
+import PersonalQuiz from "./pages/PersonalQuiz";
 import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
 import Interests from "./pages/Interests";
@@ -39,6 +40,7 @@ const App = () => (
             {/* Protected routes - require authentication */}
             <Route path="/" element={<ProtectedRoute><QuizHub /></ProtectedRoute>} />
             <Route path="/interests" element={<ProtectedRoute><Interests /></ProtectedRoute>} />
+            <Route path="/quiz" element={<ProtectedRoute><PersonalQuiz /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
