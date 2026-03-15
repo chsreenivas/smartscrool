@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Search, User, Upload, Flame, Zap, X, Brain, Users, Target, BookOpen, Sparkles, Trophy } from 'lucide-react';
+import { Search, User, Upload, Flame, Zap, X, Brain, Users, Target, BookOpen, Sparkles, Trophy, Map } from 'lucide-react';
 import { VideoShort } from '@/components/VideoShort';
 import { useShorts } from '@/hooks/useShorts';
 import { useProfile } from '@/hooks/useProfile';
