@@ -40,6 +40,7 @@ const App = () => (
             {/* Protected routes - require authentication */}
             <Route path="/" element={<ProtectedRoute><QuizHub /></ProtectedRoute>} />
             <Route path="/interests" element={<ProtectedRoute><Interests /></ProtectedRoute>} />
+            <Route path="/quiz" element={<ProtectedRoute><PersonalQuiz /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
