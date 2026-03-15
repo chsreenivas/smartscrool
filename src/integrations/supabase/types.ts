@@ -373,6 +373,80 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_path_steps: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          path_id: string
+          required_category: string | null
+          required_videos: number
+          step_order: number
+          step_type: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          path_id: string
+          required_category?: string | null
+          required_videos?: number
+          step_order: number
+          step_type?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          path_id?: string
+          required_category?: string | null
+          required_videos?: number
+          step_order?: number
+          step_type?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_path_steps_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_paths: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          step_count: number
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          step_count?: number
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          step_count?: number
+          title?: string
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -810,6 +884,51 @@ export type Database = {
             columns: ["achievement_id"]
             isOneToOne: false
             referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_path_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          path_id: string
+          step_id: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          path_id: string
+          step_id: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          path_id?: string
+          step_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_path_progress_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_path_progress_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "learning_path_steps"
             referencedColumns: ["id"]
           },
         ]

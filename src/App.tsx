@@ -18,6 +18,7 @@ import Privacy from "./pages/Privacy";
 import Topics from "./pages/Topics";
 import Topic from "./pages/Topic";
 import CreatorProfile from "./pages/CreatorProfile";
+import LearningPaths from "./pages/LearningPaths";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/topics" element={<ProtectedRoute><Topics /></ProtectedRoute>} />
             <Route path="/topic/:topicSlug" element={<ProtectedRoute><Topic /></ProtectedRoute>} />
+            <Route path="/paths" element={<ProtectedRoute><LearningPaths /></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
