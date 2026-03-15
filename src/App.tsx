@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import QuizHub from "./pages/QuizHub";
+import PersonalQuiz from "./pages/PersonalQuiz";
 import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
 import Interests from "./pages/Interests";
