@@ -39,7 +39,8 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             
             {/* Protected routes - require authentication */}
-            <Route path="/" element={<ProtectedRoute><QuizHub /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+            <Route path="/quizhub" element={<ProtectedRoute><QuizHub /></ProtectedRoute>} />
             <Route path="/interests" element={<ProtectedRoute><Interests /></ProtectedRoute>} />
             <Route path="/quiz" element={<ProtectedRoute><PersonalQuiz /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
