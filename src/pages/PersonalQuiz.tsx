@@ -93,12 +93,39 @@ const PersonalQuiz = () => {
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
   const passed = percentage >= 70;
 
-  // Award achievement on pass
+  // Award XP and save history on pass
   useEffect(() => {
-    if (quiz?.finished && passed) {
-      toast.success('🏆 Achievement Unlocked: Smart Learner!', { description: `You scored ${percentage}%!` });
-    }
-  }, [quiz?.finished, passed, percentage]);
+    if (!quiz?.finished || !user) return;
+
+    const saveResults = async () => {
+      const xpAmount = passed ? 50 : 0;
+
+      // Save to quiz_history
+      await (supabase as any).from('quiz_history').insert({
+        user_id: user.id,
+        score,
+        total,
+        percentage,
+        questions: quiz.questions,
+        answers: quiz.answers,
+        passed,
+        xp_earned: xpAmount,
+      });
+
+      // Award XP if passed
+      if (passed) {
+        await supabase.rpc('award_xp', {
+          p_user_id: user.id,
+          p_amount: xpAmount,
+          p_source: 'quiz',
+          p_reference_id: null,
+        });
+        toast.success('🏆 Achievement Unlocked: Smart Learner!', { description: `You scored ${percentage}%! +${xpAmount} XP` });
+      }
+    };
+
+    saveResults();
+  }, [quiz?.finished]);
 
   if (loading) {
     return (
