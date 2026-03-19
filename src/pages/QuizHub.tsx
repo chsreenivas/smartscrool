@@ -144,6 +144,14 @@ const QuizHub = () => {
           <p className="text-muted-foreground text-sm">
             Based on the videos you've watched
           </p>
+          <div className="pt-2">
+            <button
+              onClick={() => navigate('/quiz-history')}
+              className="text-sm text-primary hover:underline"
+            >
+              View Quiz History →
+            </button>
+          </div>
           <div className="pt-4">
             <p className="text-muted-foreground mb-4">
               Want to learn through videos instead?
