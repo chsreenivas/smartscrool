@@ -630,6 +630,45 @@ export type Database = {
           },
         ]
       }
+      quiz_history: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          passed: boolean
+          percentage: number
+          questions: Json
+          score: number
+          total: number
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          passed?: boolean
+          percentage: number
+          questions?: Json
+          score: number
+          total: number
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          passed?: boolean
+          percentage?: number
+          questions?: Json
+          score?: number
+          total?: number
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       quizzes: {
         Row: {
           correct_answer: number
