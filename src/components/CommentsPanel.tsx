@@ -119,6 +119,7 @@ export const CommentsPanel = ({ isOpen, onClose, shortId }: CommentsPanelProps) 
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && handleReply(comment.id)}
+                          maxLength={1000}
                           className="h-8 text-sm"
                         />
                         <Button size="sm" className="h-8 px-3" onClick={() => handleReply(comment.id)}>
@@ -165,6 +166,7 @@ export const CommentsPanel = ({ isOpen, onClose, shortId }: CommentsPanelProps) 
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                  maxLength={1000}
                   className="flex-1"
                 />
                 <Button onClick={handleSubmit} size="icon" disabled={!newComment.trim()}>
