@@ -43,7 +43,7 @@ serve(async (req) => {
     const supabaseService = createClient(supabaseUrl, serviceRoleKey);
     const { data: allowed } = await supabaseService.rpc('check_rate_limit', {
       p_user_id: user.id, p_endpoint: 'generate-history-quiz',
-      p_max_requests: 5, p_window_seconds: 3600
+      p_max_requests: 20, p_window_seconds: 3600
     });
 
     if (allowed === false) {
