@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Brain, ArrowLeft, CheckCircle, XCircle, Trophy, Sparkles, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
@@ -30,9 +30,11 @@ const PersonalQuiz = () => {
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const generatingRef = useRef(false);
 
   const generateQuiz = useCallback(async () => {
-    if (!user) return;
+    if (!user || generatingRef.current) return;
+    generatingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -54,6 +56,7 @@ const PersonalQuiz = () => {
       setError(err.message || 'Failed to generate quiz');
     } finally {
       setLoading(false);
+      generatingRef.current = false;
     }
   }, [user]);
 
