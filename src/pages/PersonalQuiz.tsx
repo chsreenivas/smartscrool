@@ -239,12 +239,13 @@ const PersonalQuiz = () => {
             })}
           </div>
 
-          <div className="flex gap-3 justify-center mt-8">
-            <button onClick={() => navigate('/feed')} className="px-5 py-2.5 rounded-full bg-muted text-foreground font-medium hover:bg-muted/80 transition-colors">
-              Back to Feed
+          <div className="flex flex-col items-center gap-3 mt-8">
+            <button onClick={() => { setQuiz(null); generateQuiz(); }} className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
+              Try Another Quiz
             </button>
-            <button onClick={() => { setQuiz(null); generateQuiz(); }} className="px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
-              New Quiz
+            <button onClick={() => navigate('/')} className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-muted text-foreground font-medium hover:bg-muted/80 transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Watching
             </button>
           </div>
         </main>
