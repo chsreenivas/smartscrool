@@ -119,6 +119,7 @@ export const CommentsPanel = ({ isOpen, onClose, shortId }: CommentsPanelProps) 
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && handleReply(comment.id)}
+                          maxLength={1000}
                           className="h-8 text-sm"
                         />
                         <Button size="sm" className="h-8 px-3" onClick={() => handleReply(comment.id)}>
