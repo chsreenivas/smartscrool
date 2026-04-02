@@ -36,7 +36,7 @@ export const useComments = (shortId: string) => {
       const userIds = [...new Set(data.map((c: any) => c.user_id))];
       if (userIds.length > 0) {
         const { data: profiles } = await supabase.rpc('get_public_profiles', { p_user_ids: userIds });
-        const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+        const profileMap = new Map((profiles || []).map((p: { id: string; username: string; avatar_url: string }) => [p.id, p]));
         
         setComments(data.map((c: any) => ({
           ...c,
