@@ -163,7 +163,7 @@ const Feed = () => {
         transition={{ duration: 0.5 }}
       >
         <button 
-          onClick={() => navigate('/feed')}
+          onClick={() => navigate('/quiz')}
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
