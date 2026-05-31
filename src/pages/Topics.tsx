@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 
 const topics = [
@@ -20,9 +21,17 @@ const Topics = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Browse Topics — Smart Scroll Learning Library</title>
+        <meta name="description" content="Explore Smart Scroll learning topics: math, science, history, psychology, ELA, money, technology, SAT prep, music and philosophy." />
+        <link rel="canonical" href="/topics" />
+        <meta property="og:title" content="Browse Topics — Smart Scroll" />
+        <meta property="og:description" content="Explore subjects and learn at your own pace." />
+        <meta property="og:url" content="/topics" />
+      </Helmet>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-30 px-4 py-3 flex items-center gap-4 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <button onClick={() => navigate('/feed')} className="p-2 -ml-2">
+        <button onClick={() => navigate('/feed')} aria-label="Go back to feed" className="p-2 -ml-2">
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="font-display text-lg font-bold">Browse Topics</h1>

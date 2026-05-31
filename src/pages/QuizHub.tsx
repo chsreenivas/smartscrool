@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Brain, BookOpen, Calculator, FlaskConical, History, Music, Lightbulb, DollarSign, Laptop, GraduationCap, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -24,6 +25,14 @@ const QuizHub = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Quiz Hub — Pick a Subject to Quiz Yourself</title>
+        <meta name="description" content="Choose a subject and test your knowledge with AI-generated quizzes across math, science, history, music, philosophy and more." />
+        <link rel="canonical" href="/quizhub" />
+        <meta property="og:title" content="Quiz Hub — Smart Scroll" />
+        <meta property="og:description" content="Pick a subject and start an AI-generated quiz." />
+        <meta property="og:url" content="/quizhub" />
+      </Helmet>
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <motion.div
           className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-primary/10 blur-3xl"
