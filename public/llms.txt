@@ -1,0 +1,14 @@
+# Smart Scroll
+
+> Smart Scroll turns mindless scrolling into focused learning. Users watch short educational videos, take AI-generated quizzes on what they've watched, earn XP, and build learning streaks.
+
+Smart Scroll is a short-form educational video platform. Creators upload bite-sized lessons across subjects like Math, Science, History, Psychology, Money, Technology, ELA, SAT Prep, Music, and Philosophy. Viewers scroll through a personalized feed, hit quiz checkpoints, and track their progress through learning paths.
+
+## Pages
+
+- [Welcome](/welcome): Introduction to Smart Scroll and sign-up entry point.
+- [Privacy Promise](/privacy): How Smart Scroll protects user data and keeps the platform safe.
+
+## Optional
+
+- [Sign in](/auth): Authentication page for new and returning users.

@@ -48,7 +48,7 @@ const QuizHistory = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 px-4 py-4 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <button onClick={() => navigate('/')} className="p-2 rounded-full hover:bg-muted transition-colors">
+          <button onClick={() => navigate('/')} aria-label="Go back to feed" className="p-2 rounded-full hover:bg-muted transition-colors">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="font-display font-bold text-lg text-foreground">Quiz History</h1>

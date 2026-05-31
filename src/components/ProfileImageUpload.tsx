@@ -111,7 +111,7 @@ export const ProfileImageUpload = ({
         ) : displayUrl ? (
           <img
             src={displayUrl}
-            alt="Profile"
+            alt="User profile picture"
             className="w-full h-full object-cover"
           />
         ) : (
