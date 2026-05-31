@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Search, User, Upload, Flame, Zap, X, Brain, Users, Target, BookOpen, Sparkles, Trophy, Map } from 'lucide-react';
 import { VideoShort } from '@/components/VideoShort';
 import { useShorts } from '@/hooks/useShorts';
@@ -155,6 +156,15 @@ const Feed = () => {
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
+      <Helmet>
+        <title>Smart Scroll Feed — Educational Short Videos</title>
+        <meta name="description" content="Scroll through a personalized feed of short educational videos across Math, Science, History, Psychology, and more. Earn XP as you learn." />
+        <link rel="canonical" href="/feed" />
+        <meta property="og:title" content="Smart Scroll Feed" />
+        <meta property="og:description" content="A personalized feed of educational short videos." />
+        <meta property="og:url" content="/feed" />
+      </Helmet>
+      <h1 className="sr-only">Smart Scroll Educational Video Feed</h1>
       {/* Header */}
       <motion.header
         className="fixed top-0 left-0 right-0 z-50 px-4 py-3 flex items-center justify-between bg-gradient-to-b from-background/90 to-transparent backdrop-blur-sm"
@@ -164,6 +174,7 @@ const Feed = () => {
       >
         <button 
           onClick={() => navigate('/quiz')}
+          aria-label="Go to personalized quiz"
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
@@ -192,41 +203,45 @@ const Feed = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => { setShowAchievements(true); }}
+            aria-label="View achievements"
             className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <Trophy className="w-5 h-5 text-foreground" />
           </button>
           <button
             onClick={() => { setShowRecommendations(!showRecommendations); setShowGoals(false); setShowSearch(false); }}
+            aria-label="Topic recommendations"
             className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <Sparkles className={`w-5 h-5 ${showRecommendations ? 'text-primary' : 'text-foreground'}`} />
           </button>
           <button
             onClick={() => { setShowGoals(!showGoals); setShowRecommendations(false); setShowSearch(false); }}
+            aria-label="Daily goals"
             className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             <Target className={`w-5 h-5 ${showGoals ? 'text-primary' : 'text-foreground'}`} />
           </button>
           <button
             onClick={() => { setShowSearch(!showSearch); setShowGoals(false); setShowRecommendations(false); }}
+            aria-label={showSearch ? 'Close search' : 'Open search'}
             className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle"
           >
             {showSearch ? <X className="w-5 h-5 text-foreground" /> : <Search className="w-5 h-5 text-foreground" />}
           </button>
-          <button onClick={() => navigate('/quizhub')} className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
+          <button onClick={() => navigate('/quizhub')} aria-label="Quiz hub" className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
             <BookOpen className="w-5 h-5 text-foreground" />
           </button>
-          <button onClick={() => navigate('/social')} className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
+          <button onClick={() => navigate('/social')} aria-label="Social" className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
             <Users className="w-5 h-5 text-foreground" />
           </button>
-          <button onClick={() => navigate('/paths')} className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
+          <button onClick={() => navigate('/paths')} aria-label="Learning paths" className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
             <Map className="w-5 h-5 text-foreground" />
           </button>
-          <button onClick={() => navigate('/upload')} className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
+          <button onClick={() => navigate('/upload')} aria-label="Upload a video" className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
             <Upload className="w-5 h-5 text-foreground" />
           </button>
-          <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
+          <button onClick={() => navigate('/profile')} aria-label="Your profile" className="w-10 h-10 rounded-full bg-muted/50 backdrop-blur-sm flex items-center justify-center hover-scale-subtle">
             <User className="w-5 h-5 text-foreground" />
           </button>
         </div>
@@ -296,7 +311,7 @@ const Feed = () => {
       </motion.div>
 
       {/* Video Feed */}
-      <div ref={containerRef} className="h-screen overflow-hidden">
+      <main ref={containerRef} className="h-screen overflow-hidden" aria-label="Educational video feed">
         {displayShorts.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-foreground">
             <Brain className="w-16 h-16 mb-4 opacity-50" />
@@ -318,7 +333,7 @@ const Feed = () => {
             </div>
           ))
         )}
-      </div>
+      </main>
 
       {/* Progress Dots */}
       {displayShorts.length > 0 && (
