@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Play, Sparkles, Brain } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
@@ -16,7 +17,16 @@ const Welcome = () => {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+    <>
+      <Helmet>
+        <title>Welcome to Smart Scroll — Learn While You Scroll</title>
+        <meta name="description" content="Join Smart Scroll to watch short educational videos, take AI-generated quizzes, and turn scrolling into learning." />
+        <link rel="canonical" href="/welcome" />
+        <meta property="og:title" content="Welcome to Smart Scroll" />
+        <meta property="og:description" content="Watch educational short videos and take AI quizzes." />
+        <meta property="og:url" content="/welcome" />
+      </Helmet>
+      <main className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <motion.div
           className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-primary/20 blur-3xl"
@@ -47,7 +57,7 @@ const Welcome = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
       >
-        Smart Scroll
+        Smart Scroll — Educational Video Learning
       </motion.h1>
 
       <motion.p
@@ -60,11 +70,13 @@ const Welcome = () => {
       </motion.p>
 
       <motion.div
-        className="flex flex-wrap justify-center gap-4 mb-12"
+        className="flex flex-col items-center gap-4 mb-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
+        <h2 className="sr-only">What you get with Smart Scroll</h2>
+        <div className="flex flex-wrap justify-center gap-4">
         {[
           { icon: Play, text: 'Short Videos' },
           { icon: Sparkles, text: 'Earn XP' },
@@ -78,6 +90,7 @@ const Welcome = () => {
             <span className="text-sm font-medium">{text}</span>
           </div>
         ))}
+        </div>
       </motion.div>
 
       <motion.div
@@ -111,7 +124,8 @@ const Welcome = () => {
       >
         Join thousands of learners worldwide
       </motion.p>
-    </div>
+      </main>
+    </>
   );
 };
 
