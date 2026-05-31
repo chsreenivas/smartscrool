@@ -159,7 +159,7 @@ const Upload = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-30 px-4 py-3 flex items-center gap-4 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2">
+        <button onClick={() => navigate(-1)} aria-label="Go back" className="p-2 -ml-2">
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="font-display text-lg font-bold">Upload Video</h1>
