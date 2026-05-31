@@ -34,7 +34,7 @@ const Feed = () => {
   const [showAchievements, setShowAchievements] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'relevant'>('newest');
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
   const isScrolling = useRef(false);
 
   const { shorts, loading, toggleLike, recordView } = useShorts(selectedCategory, searchQuery, selectedDifficulty, sortBy);
